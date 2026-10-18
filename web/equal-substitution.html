@@ -189,15 +189,17 @@ const isOpChar = (c) => ['+','-','−','×','*'].includes(c);
 function escapeHtml(s){return String(s).replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));}
 
 // 把形如 "☆☆+○○" 或 "○○○○−☆☆" 解析为 token 数组
+// 按「码点」遍历而非 UTF-16 码元，否则 🍎 这类 emoji（代理对，length=2）会被劈成两半
 function parseExpr(str){
+  const chars = Array.from(str||'');
   const tokens=[]; let i=0;
-  while(i<str.length){
-    const c=str[i];
+  while(i<chars.length){
+    const c=chars[i];
     if(isOpChar(c)){ tokens.push({t:'op', v:c==='-'?'−':(c==='−'?'−':'+')}); i++; }
     else if(/\s/.test(c)){ i++; }
     else{
       const sym=c; let n=0;
-      while(i<str.length && str[i]===sym && !isOpChar(str[i])){ n++; i++; }
+      while(i<chars.length && chars[i]===sym && !isOpChar(chars[i])){ n++; i++; }
       tokens.push({t:'grp', sym, n});
     }
   }
@@ -243,7 +245,17 @@ const state = {
 
 /* ---------- 构建区渲染 ---------- */
 const PALETTE = ['★','☆','○','●','◇','◆','△','▲','□','■','♥','♦','⬟','⬢','✿','⬤'];
+// 日常水果。emoji 是代理对（JS 里 length=2），所以形状解析一律按「码点」判断，
+// 不能用 s.length===1，否则水果会被整组过滤掉。
+const FRUITS = ['🍎','🍐','🍊','🍋','🍌','🍉','🍇','🍓','🍒','🍑','🍍','🥝'];
 const OPERATORS = [{k:'+', label:'+', tip:'加号'}, {k:'−', label:'−', tip:'减号'}, {k:'?', label:'?', tip:'未知数'}];
+const isOneChar = s => Array.from(s).length===1;
+// 形状列表按「码点」解析：空格只是可选分隔。
+// 这样 🍎🍌（连写，emoji 无空格）和 ☆ ○ △（空格分隔）都能识别，
+// 旧写法 split(/\s+/) 会把连写的符号当成一个 token 而整组丢掉。
+function parseShapes(str){
+  return Array.from(new Set(Array.from(str||'').filter(c=>!/\s/.test(c) && !isOpChar(c) && c!=='?')));
+}
 
 /* 当前激活的输入框：点击符号按钮时把字符填到这里 */
 let activeInput = null;
@@ -263,9 +275,11 @@ function insertAtCursor(input, text){
 }
 function renderPalette(){
   const shapeBtns = PALETTE.map(s=>`<button data-s="${s}" title="插入 ${s}">${s}</button>`).join('');
+  const fruitBtns = FRUITS.map(s=>`<button data-s="${s}" title="插入 ${s}">${s}</button>`).join('');
   const opBtns = OPERATORS.map(o=>`<button class="opkey" data-op="${o.k}" title="插入${o.tip}">${o.label}</button>`).join('');
   $('palette').innerHTML =
     `<div class="pgroup"><span class="tagname">图形</span>${shapeBtns}</div>` +
+    `<div class="pgroup"><span class="tagname">水果</span>${fruitBtns}</div>` +
     `<div class="pgroup"><span class="tagname">运算符</span>${opBtns}</div>`;
   $('palette').querySelectorAll('button').forEach(b=>{
     // 按下时阻止默认行为 → 输入框不失焦，光标位置保留
@@ -333,7 +347,7 @@ function applicable(group, rel){
 
 /* ---------- 开始解题 ---------- */
 function start(){
-  state.shapes = $('shapesInput').value.split(/\s+/).filter(s=>s.length===1);
+  state.shapes = parseShapes($('shapesInput').value);
   if(state.shapes.length===0){ alert('请先输入至少一个形状'); return; }
   state.relations = state.relations.map(r=>({left:r.left.trim(),right:r.right.trim()})).filter(r=>r.left&&r.right);
   if(state.relations.length===0){ alert('请至少填一条等量关系'); return; }
@@ -514,7 +528,7 @@ $('shapesInput').addEventListener('input',e=>{
   // 形状区只放图形，误插入的运算符直接清掉（免得形状列表里混进 + − ?）
   const cleaned = e.target.value.replace(/[+−\-×*?]/g,' ');
   if(cleaned !== e.target.value) e.target.value = cleaned;
-  state.shapes = cleaned.split(/\s+/).filter(s=>s.length===1);
+  state.shapes = parseShapes(cleaned);
   renderChips(); renderTarget();
 });
 $('questionInput').value = state.question;

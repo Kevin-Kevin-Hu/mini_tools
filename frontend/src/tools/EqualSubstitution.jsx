@@ -12,11 +12,23 @@ import {
 import { useExperiment } from '../shared/useExperiment.js'
 
 const PALETTE = ['★', '☆', '○', '●', '◇', '◆', '△', '▲', '□', '■', '♥', '♦', '⬟', '⬢', '✿', '⬤']
+// 日常水果。emoji 是代理对（JS 里 length=2），所以形状解析一律按「码点」判断，
+// 不能用 s.length===1，否则水果会被整组过滤掉。
+const FRUITS = ['🍎', '🍐', '🍊', '🍋', '🍌', '🍉', '🍇', '🍓', '🍒', '🍑', '🍍', '🥝']
 const OPERATORS = [
   { k: '+', label: '+', tip: '加号' },
   { k: '−', label: '−', tip: '减号' },
   { k: '?', label: '?', tip: '未知数' },
 ]
+
+// 形状列表按「码点」解析：空格只是可选分隔。
+// 这样 🍎🍌（连写，emoji 无空格）和 ☆ ○ △（空格分隔）都能识别，
+// 旧写法 split(/\s+/) 会把连写的符号当成一个 token 而整组丢掉。
+function parseShapes(str) {
+  return Array.from(
+    new Set(Array.from(str || '').filter((c) => !/\s/.test(c) && !isOpChar(c) && c !== '?')),
+  )
+}
 
 function TokensView({ tokens, isCurrent, selCur, green, mark, onClick }) {
   return tokens.map((t, idx) => {
@@ -66,7 +78,7 @@ export default function EqualSubstitution({ tool }) {
   const shapesInputRef = useRef(null)
 
   const shapes = useMemo(
-    () => shapesStr.split(/\s+/).filter((s) => s.length === 1),
+    () => parseShapes(shapesStr),
     [shapesStr],
   )
 
@@ -168,7 +180,7 @@ export default function EqualSubstitution({ tool }) {
 
   // ---------- 开始解题 ----------
   function start() {
-    const sh = shapesStr.split(/\s+/).filter((s) => s.length === 1)
+    const sh = parseShapes(shapesStr)
     if (sh.length === 0) {
       alert('请先输入至少一个形状')
       return
@@ -404,6 +416,14 @@ export default function EqualSubstitution({ tool }) {
             <div className="pgroup">
               <span className="tagname">图形</span>
               {PALETTE.map((s) => (
+                <button key={s} data-s={s} onClick={(e) => paletteClick(e.currentTarget)}>
+                  {s}
+                </button>
+              ))}
+            </div>
+            <div className="pgroup">
+              <span className="tagname">水果</span>
+              {FRUITS.map((s) => (
                 <button key={s} data-s={s} onClick={(e) => paletteClick(e.currentTarget)}>
                   {s}
                 </button>

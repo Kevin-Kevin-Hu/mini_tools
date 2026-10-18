@@ -4,11 +4,13 @@
 export const isOpChar = (c) => ['+', '-', '−', '×', '*'].includes(c)
 
 // "☆☆+○○" → [{t:'grp',sym:'☆',n:2}, {t:'op',v:'+'}, {t:'grp',sym:'○',n:2}]
+// 注意：按「码点」遍历而非 UTF-16 码元，否则 🍎 这类 emoji（代理对，length=2）会被劈成两半。
 export function parseExpr(str) {
+  const chars = Array.from(str || '')
   const tokens = []
   let i = 0
-  while (i < str.length) {
-    const c = str[i]
+  while (i < chars.length) {
+    const c = chars[i]
     if (isOpChar(c)) {
       tokens.push({ t: 'op', v: c === '-' || c === '−' ? '−' : '+' })
       i++
@@ -17,7 +19,7 @@ export function parseExpr(str) {
     } else {
       const sym = c
       let n = 0
-      while (i < str.length && str[i] === sym && !isOpChar(str[i])) {
+      while (i < chars.length && chars[i] === sym && !isOpChar(chars[i])) {
         n++
         i++
       }
