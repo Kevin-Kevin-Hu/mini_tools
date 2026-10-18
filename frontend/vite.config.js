@@ -10,4 +10,9 @@ export default defineConfig({
       '/api': 'http://localhost:8000',
     },
   },
+  // 构建产物直接输出给后端托管，这样线上是"一个 Python 服务 = 一个端口"
+  build: {
+    outDir: '../backend/static',
+    emptyOutDir: true,
+  },
 })

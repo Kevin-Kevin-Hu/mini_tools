@@ -20,11 +20,13 @@ mini_tools/
 │   │   └── main.jsx
 │   ├── package.json
 │   └── vite.config.js     # /api 代理到后端 8000
-├── backend/               # FastAPI + SQLite（通用实验记录）
+├── backend/               # FastAPI + SQLite（通用实验记录），部署时唯一上传目录
 │   ├── main.py            # GET /api/tools、POST /api/experiments、GET /api/experiments/{id}
+│   │                      # 同时托管构建后的静态前端（单端口 HTTP 服务）
 │   ├── db.py              # SQLite 建表与读写
+│   ├── tools.json         # 工具注册表（Hub 经 /api/tools 读取，按学科分组）
+│   ├── static/            # 前端构建产物（npm run build 输出到这里，已 gitignore）
 │   └── requirements.txt
-├── tools.json             # 工具注册表（Hub 读取，按学科分组）
 └── web/                   # 单文件独立原型（无需构建，直接浏览器打开）
     └── equal-substitution.html
 ```
@@ -48,7 +50,13 @@ npm install
 npm run dev          # 开发：http://localhost:5173（自动把 /api 代理到 8000）
 ```
 
-前端 `npm run build` 产物在 `frontend/dist/`，可静态托管。
+`npm run build` 的产物直接输出到 `backend/static/`，由后端托管——**线上是"一个 Python 服务 = 一个端口"**，前后端同源，不需要额外代理。
+
+## 线上站点
+
+- 分享链接：https://visual-teaching-tools.app.workbuddy.host/
+
+重新发布（覆盖线上内容）：对 `backend/` 目录执行发布即可；发布前记得先 `cd frontend && npm run build`，让 `backend/static/` 带上最新前端产物。
 
 ## 已实现的工具：等量代换
 
@@ -64,5 +72,5 @@ npm run dev          # 开发：http://localhost:5173（自动把 /api 代理到
 
 1. 在 `frontend/src/tools/` 下新建组件（参考 `EqualSubstitution.jsx`）。
 2. 在 `frontend/src/pages/ToolPage.jsx` 的 `COMPONENTS` 映射里登记 `id → 组件`。
-3. 在仓库根 `tools.json` 增加一条：`{ "id", "title", "subject", "grade", "summary", "component", "path" }`。
+3. 在 `backend/tools.json` 增加一条：`{ "id", "title", "subject", "grade", "summary", "component", "path" }`。
 4. 后端**无需改动**（实验记录接口与具体工具解耦）。
