@@ -1,0 +1,33 @@
+import { useEffect, useState } from 'react'
+import { useParams } from 'react-router-dom'
+import EqualSubstitution from '../tools/EqualSubstitution.jsx'
+import { getTools } from '../api.js'
+
+// id → 组件映射（新增工具时在此登记）
+const COMPONENTS = {
+  'equal-substitution': EqualSubstitution,
+}
+
+export default function ToolPage() {
+  const { id } = useParams()
+  const [tool, setTool] = useState(null)
+  const [err, setErr] = useState(null)
+
+  useEffect(() => {
+    getTools()
+      .then((list) => {
+        const t = list.find((x) => x.id === id)
+        if (!t) setErr('未找到工具：' + id)
+        else setTool(t)
+      })
+      .catch((e) => setErr(String(e)))
+  }, [id])
+
+  if (err) return <div className="wrap"><p>{err}</p></div>
+  if (!tool) return <div className="wrap"><p>加载中…</p></div>
+
+  const C = COMPONENTS[id]
+  if (!C) return <div className="wrap"><p>该工具尚未实现组件：{id}</p></div>
+
+  return <C tool={tool} />
+}

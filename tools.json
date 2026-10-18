@@ -1,0 +1,11 @@
+[
+  {
+    "id": "equal-substitution",
+    "title": "等量代换",
+    "subject": "数学",
+    "grade": "小学低段",
+    "summary": "像解方程一样，把混合图形一步步等价替换，理解符号之间的等量关系。支持部分选中、阶梯式化简。",
+    "component": "EqualSubstitution",
+    "path": "/tool/equal-substitution"
+  }
+]
