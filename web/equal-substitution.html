@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>等量代换 · 符号意识练习</title>
+<style>
+  :root{
+    --bg:#f5f7fa; --card:#ffffff; --ink:#243042; --muted:#7a869a;
+    --line:#e3e8f0; --brand:#3b6ef5; --src:#ff8a3d; --src-bg:#fff0e2;
+    --repl:#22a06b; --repl-bg:#e3f7ec; --arrow:#9aa6bb;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:"PingFang SC","Microsoft YaHei",system-ui,-apple-system,sans-serif;
+    line-height:1.6;}
+  /* 表单控件默认不继承字体，会让 ○ 这类符号的字形比 ☆ 小一半，必须显式继承 */
+  input,select,button,textarea{font-family:inherit;}
+  .wrap{max-width:860px;margin:0 auto;padding:24px 18px 60px;}
+  h1{font-size:22px;margin:0 0 4px;}
+  .sub{color:var(--muted);font-size:14px;margin:0 0 20px;}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;
+    padding:18px 18px 20px;margin-bottom:18px;box-shadow:0 1px 3px rgba(20,40,80,.04);}
+  .card h2{font-size:16px;margin:0 0 12px;display:flex;align-items:center;gap:8px;}
+  .stepnum{display:inline-flex;width:22px;height:22px;border-radius:50%;
+    background:var(--brand);color:#fff;font-size:13px;align-items:center;justify-content:center;}
+  label{font-size:13px;color:var(--muted);display:block;margin:10px 0 4px;}
+  input[type=text]{width:100%;padding:9px 11px;border:1px solid var(--line);
+    border-radius:9px;font-size:18px;letter-spacing:.5px;color:var(--ink);background:#fbfcfe;}
+  /* 符号输入框：图形多一点呼吸感，○ 也不会显得挤 */
+  #shapesInput,.rel-row input,#questionInput,#questionRight{font-size:20px;letter-spacing:2px;}
+  input[type=text]:focus{outline:none;border-color:var(--brand);}
+  .palette{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;align-items:center;}
+  .palette button,.chip{border:1px solid var(--line);background:#fff;border-radius:9px;
+    font-size:18px;padding:4px 10px;cursor:pointer;color:var(--ink);}
+  .palette button:hover{border-color:var(--brand);background:#f7f9ff;}
+  .palette button:active{transform:translateY(1px);}
+  .palette button.opkey{background:#eef2fb;border-color:#dbe4f7;color:var(--brand);
+    font-weight:600;min-width:42px;text-align:center;}
+  #palette{flex-direction:column;align-items:flex-start;gap:8px;}
+  #palette .pgroup{display:flex;flex-wrap:wrap;gap:6px;align-items:center;}
+  .palette .tagname{font-size:12px;color:var(--muted);margin-right:2px;}
+  #targetSel{font-size:17px;padding:7px 10px;}
+  .chip{display:inline-flex;align-items:center;gap:4px;font-size:18px;}
+  .chip b{font-size:13px;color:var(--muted);font-weight:400;}
+  .rel-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+  .rel-row input{flex:1;}
+  .rel-row .eq{color:var(--muted);font-size:18px;padding:0 2px;}
+  .rel-row .x{border:none;background:#fdeaea;color:#d9534f;border-radius:8px;
+    width:30px;height:34px;cursor:pointer;font-size:16px;}
+  .btn{border:none;border-radius:10px;padding:10px 16px;font-size:15px;cursor:pointer;}
+  .btn.primary{background:var(--brand);color:#fff;}
+  .btn.ghost{background:#eef2fb;color:var(--brand);}
+  .btn.light{background:#f1f3f7;color:var(--ink);}
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:14px;}
+  select{padding:9px 10px;border:1px solid var(--line);border-radius:9px;font-size:15px;background:#fbfcfe;}
+  /* solver */
+  #solver{display:none;}
+  .goal{font-size:14px;color:var(--muted);margin-bottom:6px;}
+  .steps{display:flex;flex-direction:column;gap:0;margin-top:8px;}
+  .arrow{display:flex;align-items:center;gap:8px;color:var(--arrow);
+    font-size:13px;padding:6px 4px 6px 8px;border-left:3px dashed var(--arrow);margin-left:14px;}
+  .arrow b{color:var(--ink);}
+  .step{display:block;padding:12px 14px;
+    border:1px solid var(--line);border-radius:12px;background:#fff;margin:4px 0;}
+  .step.current{border-color:var(--brand);box-shadow:0 0 0 3px rgba(59,110,245,.08);}
+  .eqline{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+  .op{color:var(--muted);font-size:20px;margin:0 8px;}
+  .qmark{background:#eef2fb;color:var(--brand);font-size:22px;letter-spacing:1px;}
+  .grp{font-size:26px;padding:2px 3px;border-radius:7px;line-height:1.35;
+    transition:background .15s,color .15s;}
+  .step.current .grp[data-click]{cursor:pointer;}
+  .step.current .grp[data-click]:hover{background:#eef2fb;}
+  .grp.src{background:var(--src-bg);color:var(--src);box-shadow:0 0 0 2px var(--src) inset;}
+  .grp.repl{background:var(--repl-bg);color:var(--repl);box-shadow:0 0 0 2px var(--repl) inset;}
+  /* 当前选中的字符（可以只选一组里的前 k 个） */
+  .grp.sel{background:#e8effe;color:var(--brand);box-shadow:0 0 0 2px var(--brand) inset;}
+  .selbar{font-size:13px;color:var(--muted);margin:12px 0 2px 14px;display:flex;
+    align-items:center;gap:8px;flex-wrap:wrap;}
+  .selbar b{color:var(--ink);font-size:16px;letter-spacing:1px;}
+  .mini{border:1px solid var(--line);background:#fff;color:var(--brand);
+    border-radius:7px;font-size:12px;padding:3px 8px;cursor:pointer;}
+  .mini:hover{border-color:var(--brand);background:#f7f9ff;}
+  .result{margin-left:auto;font-size:15px;color:var(--muted);white-space:nowrap;}
+  .result.ok{color:var(--repl);font-weight:600;}
+  .options{margin:10px 0 4px 14px;display:flex;flex-direction:column;gap:8px;}
+  .opt{border:1px solid var(--line);background:#fff;border-radius:10px;padding:9px 12px;
+    cursor:pointer;font-size:15px;text-align:left;color:var(--ink);}
+  .opt:hover{border-color:var(--brand);background:#f7f9ff;}
+  .opt .rule{color:var(--muted);font-size:13px;margin-left:6px;}
+  .opt .arrowmini{color:var(--brand);margin:0 4px;}
+  .legend{display:flex;gap:14px;font-size:13px;color:var(--muted);margin-top:10px;flex-wrap:wrap;}
+  .legend span{display:inline-flex;align-items:center;gap:6px;}
+  .relcard{background:#f7f9ff;border:1px dashed #cdd9f5;border-radius:10px;padding:10px 12px;margin:8px 0 4px;
+    font-size:15px;color:var(--ink);line-height:1.8;}
+  .relcard .lab{color:var(--muted);font-size:13px;margin-right:6px;}
+  .relcard b{color:var(--brand);font-size:18px;letter-spacing:1px;padding:0 2px;}
+  .dot{width:14px;height:14px;border-radius:4px;display:inline-block;}
+  .done{background:var(--repl-bg);color:var(--repl);border:1px solid var(--repl);
+    border-radius:10px;padding:10px 14px;margin-top:12px;font-weight:600;}
+  .hint{font-size:13px;color:var(--muted);margin-top:6px;}
+  /* 手机上打开：加大点按区域、缩小图形避免换行 */
+  *{-webkit-text-size-adjust:100%;}
+  button,.chip,.opt,.mini{touch-action:manipulation;}
+  @media (max-width:560px){
+    .wrap{padding:16px 12px 40px;}
+    h1{font-size:20px;}
+    .card{padding:14px 12px 16px;}
+    .palette button,.chip{font-size:17px;padding:7px 9px;}
+    .palette .tagname{display:none;}
+    #palette .pgroup{gap:5px;}
+    .grp{font-size:23px;padding:2px 2px;}
+    .op{font-size:17px;margin:0 5px;}
+    .step{padding:10px 10px;}
+    .selbar{margin-left:0;}
+    .options{margin-left:0;}
+    .opt{font-size:14px;padding:10px 10px;}
+    .rel-row .eq{font-size:16px;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>等量代换 · 符号意识练习</h1>
+  <p class="sub">先构建题目（形状 / 等量关系 / 求解问题），再像解方程一样，一步步把图形等价替换，直到化成目标单位。</p>
+
+  <!-- ============ 题目构建 ============ -->
+  <section class="card" id="builder">
+    <h2><span class="stepnum">1</span> 题目构建</h2>
+
+    <label>① 形状与运算符（点下面的按钮 = 直接填进当前选中的输入框）</label>
+    <div style="display:flex;gap:8px;align-items:center">
+      <input type="text" id="shapesInput" placeholder="例如：☆ ○ △" style="flex:1" />
+      <button class="mini" id="clearShapes" type="button">清空</button>
+    </div>
+    <div class="palette" id="palette"></div>
+    <div class="palette" id="chips" style="margin-top:10px;"></div>
+
+    <label>② 等量关系（支持多个形状加减，可多行）</label>
+    <div id="relList"></div>
+    <button class="btn light" id="addRel">+ 添加一条关系</button>
+
+    <label>③ 求解问题（左右两边都能输入算式，支持 + −；用 ? 表示未知）</label>
+    <div class="rel-row">
+      <input type="text" id="questionInput" placeholder="左边，如 ☆☆+○○" />
+      <span class="eq" style="font-size:20px">=</span>
+      <input type="text" id="questionRight" placeholder="右边，如 ? 或 ?+○" />
+      <button class="mini" id="clearQ" type="button">清空</button>
+    </div>
+    <div class="rel-row" style="margin-top:8px">
+      <span class="hint" style="margin:0">目标单位：</span>
+      <select id="targetSel"></select>
+      <span class="hint" style="margin:0">（把不含 ? 的那一边化简成这个单位，求出 ?）</span>
+    </div>
+
+    <div class="row">
+      <button class="btn primary" id="startBtn">开始解题 →</button>
+      <span class="hint">提示：先点一下要填的输入框，再点上面的图形/运算符按钮即可插入；也支持键盘直接输入。</span>
+    </div>
+  </section>
+
+  <!-- ============ 解题阶梯 ============ -->
+  <section class="card" id="solver">
+    <h2><span class="stepnum">2</span> 解题阶梯</h2>
+    <div class="goal" id="goalText"></div>
+    <div class="relcard" id="relShow"></div>
+    <div class="steps" id="steps"></div>
+    <div class="options" id="options"></div>
+    <div class="legend">
+      <span><i class="dot" style="background:var(--src-bg);box-shadow:0 0 0 2px var(--src) inset"></i> 这一步被换掉的图形</span>
+      <span><i class="dot" style="background:var(--repl-bg);box-shadow:0 0 0 2px var(--repl) inset"></i> 换进来的新图形</span>
+      <span><i class="dot" style="background:#e8effe;box-shadow:0 0 0 2px var(--brand) inset"></i> 当前选中（可只选一组中的一部分）</span>
+    </div>
+    <div id="doneBox"></div>
+    <div class="row">
+      <button class="btn ghost" id="undoBtn">↩ 撤销一步</button>
+      <button class="btn light" id="resetBtn">⟲ 重做本题</button>
+      <button class="btn light" id="backBtn">← 返回修改题目</button>
+    </div>
+  </section>
+</div>
+
+<script>
+"use strict";
+
+/* ---------- 基础工具 ---------- */
+const $ = (id) => document.getElementById(id);
+const isOpChar = (c) => ['+','-','−','×','*'].includes(c);
+function escapeHtml(s){return String(s).replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));}
+
+// 把形如 "☆☆+○○" 或 "○○○○−☆☆" 解析为 token 数组
+function parseExpr(str){
+  const tokens=[]; let i=0;
+  while(i<str.length){
+    const c=str[i];
+    if(isOpChar(c)){ tokens.push({t:'op', v:c==='-'?'−':(c==='−'?'−':'+')}); i++; }
+    else if(/\s/.test(c)){ i++; }
+    else{
+      const sym=c; let n=0;
+      while(i<str.length && str[i]===sym && !isOpChar(str[i])){ n++; i++; }
+      tokens.push({t:'grp', sym, n});
+    }
+  }
+  return tokens;
+}
+// 把一侧（忽略运算符，视作相加）解析为计数 map
+function parseSide(str){ const m={}; parseExpr(str).forEach(t=>{ if(t.t==='grp') m[t.sym]=(m[t.sym]||0)+t.n; }); return m; }
+function mapEq(a,b){ const ka=Object.keys(a), kb=Object.keys(b); if(ka.length!==kb.length) return false; return ka.every(k=>a[k]===b[k]); }
+function mapToTokens(map){ const out=[]; Object.keys(map).forEach(sym=>{ if(map[sym]>0) out.push({t:'grp',sym,n:map[sym]}); }); return out; }
+function scaleTokens(toks,f){ return toks.map(t=> t.t==='grp' ? {t:'grp',sym:t.sym,n:t.n*f} : t); }
+function tokensToStr(toks){ return toks.map(t=> t.t==='op' ? ' '+t.v+' ' : t.sym.repeat(t.n)).join('').trim(); }
+function evalTarget(tokens,target){ let total=0,sign=1; tokens.forEach(t=>{ if(t.t==='op') sign=(t.v==='+')?1:-1; else if(t.sym===target) total+=sign*t.n; }); return total; }
+function onlyTarget(tokens,target){ return tokens.every(t=> t.t==='op' || t.sym===target); }
+// 解题用的是"一个一个字符"的模型：☆☆☆ 展开成 3 个独立的 ☆，
+// 这样才支持"只选其中 2 个先换"，把一次替换拆成多步。
+function expand(tokens){
+  const out=[];
+  tokens.forEach(t=>{
+    if(t.t==='grp'){ for(let i=0;i<t.n;i++) out.push({t:'grp',sym:t.sym,n:1}); }
+    else out.push({t:'op',v:t.v});
+  });
+  return out;
+}
+// 同一符号连续区间（可一起被选中）
+function runBounds(tokens, i){
+  const sym=tokens[i].sym; let a=i,b=i;
+  while(a-1>=0 && tokens[a-1].t==='grp' && tokens[a-1].sym===sym) a--;
+  while(b+1<tokens.length && tokens[b+1].t==='grp' && tokens[b+1].sym===sym) b++;
+  return {a,b};
+}
+
+/* ---------- 状态 ---------- */
+const state = {
+  shapes:['☆','○','△'],
+  relations:[ {left:'☆☆', right:'○○○'}, {left:'○', right:'△△'} ],
+  question:'☆☆+○○',
+  rhs:'?',           // 等式右边（可含运算与 ?）
+  target:'○',
+  lhs:'', hasUnknown:false, workSide:'left', otherTokens:[], startTokens:[],
+  steps:[],          // 每个 step: {tokens, replIdx:[], srcMark:{start,end}, relationText, srcText, replText}
+  sel:null           // 当前选中的字符区间 {anchor, start, end}（同一符号的连续字符）
+};
+
+/* ---------- 构建区渲染 ---------- */
+const PALETTE = ['★','☆','○','●','◇','◆','△','▲','□','■','♥','♦','⬟','⬢','✿','⬤'];
+const OPERATORS = [{k:'+', label:'+', tip:'加号'}, {k:'−', label:'−', tip:'减号'}, {k:'?', label:'?', tip:'未知数'}];
+
+/* 当前激活的输入框：点击符号按钮时把字符填到这里 */
+let activeInput = null;
+function currentInput(){
+  if(activeInput && document.body.contains(activeInput)) return activeInput;
+  return $('shapesInput');
+}
+function insertAtCursor(input, text){
+  input.focus();
+  const v = input.value;
+  const start = (input.selectionStart === null ? v.length : input.selectionStart);
+  const end   = (input.selectionEnd   === null ? v.length : input.selectionEnd);
+  input.value = v.slice(0, start) + text + v.slice(end);
+  const pos = start + text.length;
+  try{ input.setSelectionRange(pos, pos); }catch(e){}
+  input.dispatchEvent(new Event('input', {bubbles:true}));
+}
+function renderPalette(){
+  const shapeBtns = PALETTE.map(s=>`<button data-s="${s}" title="插入 ${s}">${s}</button>`).join('');
+  const opBtns = OPERATORS.map(o=>`<button class="opkey" data-op="${o.k}" title="插入${o.tip}">${o.label}</button>`).join('');
+  $('palette').innerHTML =
+    `<div class="pgroup"><span class="tagname">图形</span>${shapeBtns}</div>` +
+    `<div class="pgroup"><span class="tagname">运算符</span>${opBtns}</div>`;
+  $('palette').querySelectorAll('button').forEach(b=>{
+    // 按下时阻止默认行为 → 输入框不失焦，光标位置保留
+    b.addEventListener('pointerdown', e=>e.preventDefault());
+    b.addEventListener('click', ()=>paletteClick(b));
+  });
+}
+function paletteClick(btn){
+  const input = currentInput();
+  if(btn.dataset.op){ insertAtCursor(input, btn.dataset.op); return; }
+  const sym = btn.dataset.s; if(!sym) return;
+  // 新图形要先登记进形状列表，目标单位下拉里才选得到
+  if(input !== $('shapesInput') && !state.shapes.includes(sym)){
+    state.shapes.push(sym); syncShapesInput();
+  }
+  insertAtCursor(input, sym);
+}
+function syncShapesInput(){ $('shapesInput').value = state.shapes.join(' '); renderChips(); renderTarget(); }
+function renderChips(){
+  $('chips').innerHTML = state.shapes.map(s=>`<span class="chip" data-s="${s}">${s} <b>×</b></span>`).join('');
+  $('chips').querySelectorAll('.chip').forEach(c=>{ c.onclick=()=>{ state.shapes=state.shapes.filter(x=>x!==c.dataset.s); syncShapesInput(); }; });
+}
+function renderTarget(){
+  const cur=state.target;
+  $('targetSel').innerHTML = state.shapes.map(s=>`<option value="${s}" ${s===cur?'selected':''}>${s}</option>`).join('');
+}
+function renderRels(){
+  const el=$('relList');
+  el.innerHTML = state.relations.map((r,idx)=>`
+    <div class="rel-row">
+      <input type="text" data-i="${idx}" data-k="left" value="${escapeHtml(r.left)}" placeholder="如 ☆☆" />
+      <span class="eq">=</span>
+      <input type="text" data-i="${idx}" data-k="right" value="${escapeHtml(r.right)}" placeholder="如 ○○○" />
+      <button class="x" data-i="${idx}" title="删除">×</button>
+    </div>`).join('');
+  el.querySelectorAll('input').forEach(inp=>{ inp.oninput=()=>{ state.relations[+inp.dataset.i][inp.dataset.k]=inp.value; }; });
+  el.querySelectorAll('.x').forEach(b=>{ b.onclick=()=>{ state.relations.splice(+b.dataset.i,1); renderRels(); }; });
+}
+
+/* ---------- 关系匹配：对某个 group 可应用的转换 ---------- */
+function applicable(group, rel){
+  const out=[]; const l=parseSide(rel.left), r=parseSide(rel.right);
+  const gmap={[group.sym]:group.n};
+  // 整组精确匹配
+  if(mapEq(l,gmap)) out.push({tokens:mapToTokens(r), text:rel.right.trim()});
+  if(mapEq(r,gmap)) out.push({tokens:mapToTokens(l), text:rel.left.trim()});
+  // 单边为单一符号（数量=k），可按比例换算（n 必须是 k 的整数倍，避免分数）
+  const singleFactor = (map, opposite) => {
+    const ks=Object.keys(map);
+    if(ks.length===1 && ks[0]===group.sym && map[ks[0]]>0){
+      const k=map[ks[0]];
+      if(group.n % k === 0){ const f=group.n/k; const t=scaleTokens(parseExpr(opposite), f); return t; }
+    }
+    return null;
+  };
+  const fromLeft = singleFactor(l, rel.right);
+  if(fromLeft) out.push({tokens:fromLeft, text:tokensToStr(fromLeft)});
+  const fromRight = singleFactor(r, rel.left);
+  if(fromRight) out.push({tokens:fromRight, text:tokensToStr(fromRight)});
+  // 去重
+  const seen=new Set(); const uniq=[];
+  out.forEach(o=>{ const k=tokensToStr(o.tokens); if(!seen.has(k)){seen.add(k);uniq.push(o);} });
+  return uniq;
+}
+
+/* ---------- 开始解题 ---------- */
+function start(){
+  state.shapes = $('shapesInput').value.split(/\s+/).filter(s=>s.length===1);
+  if(state.shapes.length===0){ alert('请先输入至少一个形状'); return; }
+  state.relations = state.relations.map(r=>({left:r.left.trim(),right:r.right.trim()})).filter(r=>r.left&&r.right);
+  if(state.relations.length===0){ alert('请至少填一条等量关系'); return; }
+  const qL = $('questionInput').value.replace(/个/g,'').trim();
+  const qR = ($('questionRight').value.replace(/个/g,'').trim() || '?');
+  if(!qL){ alert('请填写求解问题'); return; }
+  const lhsQ = qL.includes('?'), rhsQ = qR.includes('?');
+  if(lhsQ && rhsQ){ alert('左右两边不能同时含 ?，请把未知只放在一边'); return; }
+  state.target = $('targetSel').value;
+  state.lhs = qL; state.rhs = qR;
+  state.hasUnknown = lhsQ || rhsQ;
+  if(lhsQ){ // 未知在左边 → 化简右边
+    state.workSide='right'; state.otherTokens=expand(parseExpr(qL)); state.startTokens=expand(parseExpr(qR));
+  } else { // 未知在右边（或没有未知）→ 化简左边
+    state.workSide='left'; state.otherTokens=expand(parseExpr(qR)); state.startTokens=expand(parseExpr(qL));
+  }
+  state.steps = [{tokens:state.startTokens}];
+  state.sel=null;
+  $('builder').style.display='none';
+  $('solver').style.display='block';
+  const sideTxt = state.workSide==='left' ? '左边' : '右边';
+  $('goalText').textContent = state.hasUnknown
+    ? `目标：把${sideTxt}的算式一步步化成「${state.target}」，求出 ?。`
+    : `目标：把${sideTxt}的算式一步步化成「${state.target}」。`;
+  $('relShow').innerHTML = '<span class="lab">已知关系</span>' +
+    state.relations.map(r=>`<b>${escapeHtml(r.left)}</b> = <b>${escapeHtml(r.right)}</b>`).join(' ， ');
+  renderSolver();
+}
+
+/* ---------- 渲染解题阶梯 ---------- */
+function renderStatic(tokens){
+  return tokens.map(t=> t.t==='op'
+    ? `<span class="op">${t.v}</span>`
+    : `<span class="grp">${t.sym.repeat(t.n)}</span>`).join(' ');
+}
+// 用"已知侧化简结果 N"与另一侧含 ? 的线性表达式求 ?
+function solveUnknown(N, target){
+  let coef=0, sign=1;
+  state.otherTokens.forEach(t=>{
+    if(t.t==='op') sign = (t.v==='+')?1:-1;
+    else if(t.sym==='?') coef += sign*t.n;
+  });
+  const constVal = evalTarget(state.otherTokens, target); // ? 不计入，只数目标符号
+  if(coef===0 || coef!==1) return null;
+  const val = N - constVal;
+  return Number.isInteger(val) ? val : null;
+}
+
+function renderSolver(){
+  const steps=state.steps, last=steps.length-1, target=state.target;
+  const otherLoneQ = state.otherTokens.length===1 && state.otherTokens[0].t==='grp' && state.otherTokens[0].sym==='?';
+  const otherHtml = otherLoneQ
+    ? `<span class="grp qmark">? 个${target}</span>`
+    : renderStatic(state.otherTokens);
+  let html='';
+  for(let i=0;i<steps.length;i++){
+    const st=steps[i];
+    if(i>0){
+      html+=`<div class="arrow">↓ 用 <b>${escapeHtml(st.relationText)}</b>：把 <span style="color:var(--src);font-weight:600">${escapeHtml(st.srcText)}</span> <span style="color:var(--brand)">→</span> <span style="color:var(--repl);font-weight:600">${escapeHtml(st.replText)}</span></div>`;
+    }
+    const isCurrent=(i===last);
+    const green=new Set(st.replIdx||[]);
+    const mark=st.srcMark;
+    const sel=isCurrent? state.sel : null;
+    let toksHtml='';
+    st.tokens.forEach((t,idx)=>{
+      if(t.t==='op'){ toksHtml+=`<span class="op">${t.v}</span>`; return; }
+      let cls='grp';
+      if(green.has(idx)) cls+=' repl';
+      else if(mark && idx>=mark.start && idx<=mark.end) cls+=' src';
+      if(sel && idx>=sel.start && idx<=sel.end) cls+=' sel';
+      const clickable=isCurrent? ' data-click="1"':'';
+      toksHtml+=`<span class="${cls}"${clickable} data-idx="${idx}">${t.sym}</span>`;
+    });
+    const leftHtml = state.workSide==='left' ? toksHtml : otherHtml;
+    const rightHtml = state.workSide==='left' ? otherHtml : toksHtml;
+    const solved = onlyTarget(st.tokens,target) && st.tokens.some(t=>t.t==='grp');
+    let resultHtml='';
+    if(solved){
+      const ans=evalTarget(st.tokens,target);
+      const unk = state.hasUnknown ? solveUnknown(ans,target) : null;
+      resultHtml = state.hasUnknown
+        ? `<span class="result ok">? = ${unk===null?'?':unk} 个${target} ✓</span>`
+        : `<span class="result ok">= ${ans} 个${target} ✓</span>`;
+    }
+    html+=`<div class="step ${isCurrent?'current':''}"><div class="eqline">${leftHtml} <span class="op">=</span> ${rightHtml} ${resultHtml}</div></div>`;
+  }
+  $('steps').innerHTML=html;
+
+  // 绑定当前步可点击的字符（点第一个定锚点，再点另一个扩展成区间）
+  $('steps').querySelectorAll('.grp[data-click]').forEach(g=>{
+    g.onclick=()=>selectChar(+g.dataset.idx);
+  });
+  if(state.sel) renderOptions(); else $('options').innerHTML='';
+
+  // 完成提示
+  const cur=steps[last];
+  const done = onlyTarget(cur.tokens,target) && cur.tokens.some(t=>t.t==='grp');
+  if(done){
+    const ans=evalTarget(cur.tokens,target);
+    const unk = state.hasUnknown ? solveUnknown(ans,target) : null;
+    const head = state.hasUnknown ? (unk===null ? '化到了同一个单位，但 ? 这侧形式较复杂' : `? = ${unk}`) : `答案 ${ans}`;
+    $('doneBox').innerHTML = `<div class="done">🎉 搞定！${head} 个${target}。每一步就像解方程，把混合图形一步步换成同一种单位。</div>`;
+  } else { $('doneBox').innerHTML=''; }
+}
+
+/* ---------- 选中字符（支持只选一组里的一部分）---------- */
+function selectChar(idx){
+  const cur=state.steps[state.steps.length-1];
+  const t=cur.tokens[idx]; if(!t||t.t!=='grp') return;
+  const run=runBounds(cur.tokens, idx);
+  const a=state.sel ? state.sel.anchor : null;
+  if(a===null || idx<run.a || idx>run.b || cur.tokens[a].sym!==t.sym){
+    state.sel={anchor:idx, start:idx, end:idx};                 // 新的一组：从这一颗开始
+  } else if(idx===a){
+    state.sel={anchor:a, start:a, end:a};                       // 点回锚点：收成一颗
+  } else {
+    state.sel={anchor:a, start:Math.min(a,idx), end:Math.max(a,idx)};  // 再点一颗：扩展成区间
+  }
+  renderSolver();
+}
+
+/* ---------- 选中后展示可做的转换 ---------- */
+function renderOptions(){
+  const sel=state.sel; if(!sel) return;
+  const cur=state.steps[state.steps.length-1];
+  const start=sel.start, end=sel.end;
+  const t0=cur.tokens[start]; if(!t0||t0.t!=='grp'){ $('options').innerHTML=''; return; }
+  const sym=t0.sym, k=end-start+1;
+  const run=runBounds(cur.tokens, start);
+  const opts=[];
+  state.relations.forEach(rel=> applicable({sym,n:k},rel).forEach(a=>opts.push({rel,a})));
+  const selText=sym.repeat(k);
+  const total=run.b-run.a+1;
+  let head=`<div class="selbar">已选 <b>${escapeHtml(selText)}</b>（${k} 个${escapeHtml(sym)}`;
+  if(total>k) head+=`，本组共 ${total} 个`;
+  head+=`）`;
+  head+=` <button class="mini" id="selClear">取消选择</button>`;
+  if(k<total) head+=` <button class="mini" id="selAll">全选本组（${total}）</button>`;
+  if(k>1) head+=` <button class="mini" id="selOne">只留 1 个</button>`;
+  head+=`</div>`;
+  $('options').innerHTML = head + (opts.length
+    ? opts.map((o,kk)=>`<button class="opt" data-k="${kk}">${escapeHtml(selText)} <span class="arrowmini">→</span> ${escapeHtml(o.a.text)} <span class="rule">（规则：${escapeHtml(o.rel.left)} = ${escapeHtml(o.rel.right)}）</span></button>`).join('')
+    : `<div class="hint">选中这部分暂时换不了——可以只选这组里更少的几个，或先换别的图形。</div>`);
+  const sa=$('selAll'); if(sa) sa.onclick=()=>{ state.sel={anchor:run.a,start:run.a,end:run.b}; renderSolver(); };
+  const so=$('selOne'); if(so) so.onclick=()=>{ state.sel={anchor:start,start,end:start}; renderSolver(); };
+  const sc=$('selClear'); if(sc) sc.onclick=()=>{ state.sel=null; renderSolver(); };
+  $('options').querySelectorAll('.opt').forEach(b=>{ b.onclick=()=>applyConversion(sel, opts[+b.dataset.k]); });
+}
+
+/* ---------- 执行一次转换，生成新的一步（支持只换一部分）---------- */
+function applyConversion(sel, opt){
+  const cur=state.steps[state.steps.length-1];
+  const start=sel.start, end=sel.end;
+  const sym=cur.tokens[start].sym, k=end-start+1;
+  const inserted=expand(opt.a.tokens).map(t=> t.t==='grp'? {t:'grp',sym:t.sym,n:1} : {t:'op',v:t.v});
+  const newTokens=[...cur.tokens.slice(0,start), ...inserted, ...cur.tokens.slice(end+1)];
+  const replIdx=[]; for(let j=0;j<inserted.length;j++) replIdx.push(start+j);
+  cur.srcMark={start, end};   // 上一步里被换掉的字符，下一步用橙色标出
+  state.steps.push({
+    tokens:newTokens,
+    replIdx,
+    relationText:`${opt.rel.left} = ${opt.rel.right}`,
+    srcText:sym.repeat(k),
+    replText:tokensToStr(inserted)
+  });
+  state.sel=null;
+  renderSolver();
+}
+
+/* ---------- 事件绑定 ---------- */
+// 记住最后聚焦的输入框（关系行会重建，用委托更稳）
+document.addEventListener('focusin', e=>{
+  const t = e.target;
+  if(t && t.tagName === 'INPUT' && t.type === 'text') activeInput = t;
+});
+$('shapesInput').addEventListener('input',e=>{
+  // 形状区只放图形，误插入的运算符直接清掉（免得形状列表里混进 + − ?）
+  const cleaned = e.target.value.replace(/[+−\-×*?]/g,' ');
+  if(cleaned !== e.target.value) e.target.value = cleaned;
+  state.shapes = cleaned.split(/\s+/).filter(s=>s.length===1);
+  renderChips(); renderTarget();
+});
+$('questionInput').value = state.question;
+$('questionRight').value = state.rhs;
+// 清空按钮：让孩子不碰键盘也能重出新题
+$('clearShapes').onclick=()=>{ $('shapesInput').value=''; state.shapes=[]; renderChips(); renderTarget(); };
+$('clearQ').onclick=()=>{ $('questionInput').value=''; $('questionRight').value=''; };
+$('addRel').onclick=()=>{ state.relations.push({left:'',right:''}); renderRels(); };
+$('startBtn').onclick=start;
+$('undoBtn').onclick=()=>{ if(state.steps.length>1){ state.steps.pop(); state.sel=null; renderSolver(); } };
+$('resetBtn').onclick=()=>{ state.steps=[{tokens:state.startTokens}]; state.sel=null; renderSolver(); };
+$('backBtn').onclick=()=>{ $('solver').style.display='none'; $('builder').style.display='block'; };
+
+/* 初始化 */
+renderPalette(); syncShapesInput(); renderRels();
+</script>
+</body>
+</html>
