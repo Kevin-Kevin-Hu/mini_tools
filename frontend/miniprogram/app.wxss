@@ -1,0 +1,84 @@
+/* 全局样式：与网页版 base.css 同一套视觉变量 */
+page {
+  --brand: #2f6fed;
+  --brand-weak: #eef3fe;
+  --ink: #1a2233;
+  --muted: #7a8499;
+  --line: #e3e8f0;
+  --bg: #f5f7fb;
+  --ok: #2e9e5b;
+  --danger: #d6453d;
+  --orange: #e8930c;
+  --orange-bg: #fdf3e2;
+  --green: #2e9e5b;
+  --green-bg: #e9f7ee;
+
+  background: var(--bg);
+  color: var(--ink);
+  font-size: 28rpx;
+  font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+
+.card {
+  background: #fff;
+  border: 1rpx solid var(--line);
+  border-radius: 24rpx;
+  padding: 28rpx;
+  margin: 0 24rpx 24rpx;
+}
+
+.h2 {
+  font-size: 32rpx;
+  font-weight: 700;
+  margin-bottom: 20rpx;
+}
+
+.hint {
+  color: var(--muted);
+  font-size: 24rpx;
+  line-height: 1.6;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16rpx 32rpx;
+  border-radius: 16rpx;
+  font-size: 28rpx;
+  background: var(--brand);
+  color: #fff;
+  border: none;
+  line-height: 1.4;
+  box-sizing: border-box;
+  margin: 0;
+  /* 微信 <button> 默认 margin-left/right:auto，在 flex 容器里会被撑成整宽并换行。
+     显式关掉自动外边距 + 禁止拉伸，保证多个按钮能并排同一行。 */
+  margin-left: 0;
+  margin-right: 0;
+  flex: 0 0 auto;
+  width: auto;
+}
+.btn::after {
+  border: none;
+}
+.btn.light {
+  background: #fff;
+  color: var(--brand);
+  border: 1rpx solid var(--line);
+}
+.btn.danger {
+  background: #fff;
+  color: var(--danger);
+  border: 1rpx solid #f2c7c4;
+}
+.btn.mini {
+  padding: 8rpx 20rpx;
+  font-size: 24rpx;
+  border-radius: 12rpx;
+}
+.btn[disabled] {
+  opacity: 0.45;
+  color: #fff;
+  background: var(--brand);
+}

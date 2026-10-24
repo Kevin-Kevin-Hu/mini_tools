@@ -1,0 +1,7 @@
+{
+  "navigationBarTitleText": "任务安排",
+  "usingComponents": {
+    "stepper": "../../components/stepper/index",
+    "time-picker": "../../components/time-picker/index"
+  }
+}

@@ -1,0 +1,79 @@
+<!-- 已知关系：常驻顶部，做题不忘设定 -->
+<view class="card known">
+  <view class="lbl">已知关系</view>
+  <view wx:for="{{knownRels}}" wx:key="*this" class="known-item">{{item}}</view>
+</view>
+
+<!-- 求解问题 -->
+<view class="card">
+  <view class="lbl">求解</view>
+  <view class="done" wx:if="{{isDone}}">
+    ✅ {{resultText}}
+  </view>
+  <view class="hint" wx:else>点算式里的图形选中（再点同组可扩选），然后应用下面的转换规则。</view>
+</view>
+
+<!-- 当前算式 -->
+<view class="card">
+  <view class="expr">
+    <view
+      wx:for="{{steps[steps.length - 1].cells}}"
+      wx:key="index"
+      class="cell {{item.isOp ? 'op' : ''}} {{item.cls}}"
+      data-i="{{index}}"
+      bind:tap="tapCell"
+    >{{item.sym}}</view>
+  </view>
+  <view class="row" style="margin-top:20rpx">
+    <button class="btn mini light" bind:tap="undo" disabled="{{!undoable}}">撤销一步</button>
+    <button class="btn mini light" bind:tap="restart">重新开始</button>
+    <view class="grow"></view>
+  </view>
+</view>
+
+<!-- 选中条 + 可选转换 -->
+<view wx:if="{{sel}}" class="card">
+  <view class="selbar">
+    已选 <text class="sel-sym">{{selText}}</text>（{{selK}} 个）
+    <text wx:if="{{selTotal > selK}}" class="hint">，本组共 {{selTotal}} 个</text>
+  </view>
+  <view class="chips">
+    <view class="chip" bind:tap="clearSel">取消选择</view>
+    <view wx:if="{{selTotal > selK}}" class="chip" bind:tap="selAllRun">全选本组（{{selTotal}}）</view>
+    <view wx:if="{{selK > 1}}" class="chip" bind:tap="selOne">只留 1 个</view>
+  </view>
+  <block wx:if="{{options.length}}">
+    <view
+      wx:for="{{options}}"
+      wx:key="index"
+      class="opt"
+      data-i="{{index}}"
+      bind:tap="applyOption"
+    >
+      <text class="opt-src">{{selText}}</text> <text class="opt-arrow">→</text> <text class="opt-dst">{{item.text}}</text>
+      <view class="opt-rule">规则：{{item.relText}}</view>
+    </view>
+  </block>
+  <view wx:else class="hint" style="margin-top:12rpx">
+    选中这部分暂时换不了——可以只选这组里更少的几个，或先换别的图形。
+  </view>
+</view>
+
+<!-- 步骤历史 -->
+<view wx:if="{{stepMetas.length}}" class="card">
+  <view class="lbl">步骤（橙色 = 这步换掉的，绿色 = 换进来的）</view>
+  <view wx:for="{{steps}}" wx:key="index" class="step">
+    <view class="expr mini-expr">
+      <view
+        wx:for="{{item.cells}}"
+        wx:for-item="c"
+        wx:for-index="ci"
+        wx:key="ci"
+        class="cell sm {{c.isOp ? 'op' : ''}} {{c.cls}}"
+      >{{c.sym}}</view>
+    </view>
+    <view wx:if="{{index < stepMetas.length}}" class="step-meta">
+      ⬇ 用规则 {{stepMetas[index].relationText}}：把 {{stepMetas[index].srcText}} 换成 {{stepMetas[index].replText}}
+    </view>
+  </view>
+</view>

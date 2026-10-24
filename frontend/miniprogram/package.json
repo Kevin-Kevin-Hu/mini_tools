@@ -1,0 +1,8 @@
+{
+  "name": "edupace-miniprogram",
+  "version": "1.0.0",
+  "description": "EduPace — 建立自己的学习计划",
+  "dependencies": {
+    "@tencent-ai/workbuddy-cloud-sdk": "dev"
+  }
+}

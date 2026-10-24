@@ -106,3 +106,21 @@ export function todayStr() {
   const day = String(d.getDate()).padStart(2, "0");
   return `${y}-${m}-${day}`;
 }
+
+// 日期加减：入参/出参均为 YYYY-MM-DD，n 可为负数。
+// 走 UTC 构造 + UTC 读回，避开夏令时/时区把「加一天」算错。
+// 与小程序版 utils/dailyPlanLogic.js 的 addDays 一一对应，改请两边同步。
+export function addDays(dateStr, n) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(dateStr || "").trim());
+  let base;
+  if (m) base = Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+  else {
+    const d = new Date();
+    base = Date.UTC(d.getFullYear(), d.getMonth(), d.getDate());
+  }
+  const t = new Date(base + (Number(n) || 0) * 86400000);
+  const y = t.getUTCFullYear();
+  const mo = String(t.getUTCMonth() + 1).padStart(2, "0");
+  const day = String(t.getUTCDate()).padStart(2, "0");
+  return `${y}-${mo}-${day}`;
+}

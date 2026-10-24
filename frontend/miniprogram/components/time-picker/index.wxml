@@ -1,0 +1,17 @@
+<view wx:if="{{visible}}" class="tp-mask" catch:tap="onCancel">
+  <view class="tp-panel" catch:tap="noop">
+    <view class="tp-head">
+      <text class="tp-cancel" bind:tap="onCancel">取消</text>
+      <text class="tp-title">选择时间</text>
+      <text class="tp-ok" bind:tap="onConfirm">确定</text>
+    </view>
+    <picker-view class="tp-view" value="{{idx}}" bindchange="onPick">
+      <picker-view-column>
+        <view wx:for="{{hours}}" wx:key="*this" class="tp-item">{{item}} 时</view>
+      </picker-view-column>
+      <picker-view-column>
+        <view wx:for="{{minutes}}" wx:key="*this" class="tp-item">{{item}} 分</view>
+      </picker-view-column>
+    </picker-view>
+  </view>
+</view>

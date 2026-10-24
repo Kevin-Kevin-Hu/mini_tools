@@ -1,0 +1,73 @@
+<!-- ① 形状 -->
+<view class="card">
+  <view class="h2">① 输入形状</view>
+  <input
+    class="in"
+    value="{{shapesStr}}"
+    placeholder="如：☆ ○ △（空格可选）"
+    bindinput="onShapesInput"
+  />
+  <view class="keys">
+    <view wx:for="{{geo}}" wx:key="*this" class="key" data-sym="{{item}}" bind:tap="onKey">{{item}}</view>
+  </view>
+  <view class="keys">
+    <view wx:for="{{fruits}}" wx:key="*this" class="key" data-sym="{{item}}" bind:tap="onKey">{{item}}</view>
+  </view>
+  <view class="hint">点符号插入到形状框末尾；也可以直接打字。emoji 属于一个整体字符，放心点。</view>
+</view>
+
+<!-- ② 等量关系 -->
+<view class="card">
+  <view class="row">
+    <view class="h2" style="margin-bottom:0">② 等量关系</view>
+    <view class="grow"></view>
+    <button class="btn mini light" bind:tap="addRelation">＋加一条</button>
+  </view>
+  <view wx:for="{{relations}}" wx:key="index" class="rel">
+    <view class="rel-side {{focusField === 'relL:' + index ? 'focus' : ''}}" data-f="relL:{{index}}" bind:tap="setFocus">
+      <input class="rel-in" placeholder="如 ☆☆" value="{{item.left}}" data-i="{{index}}" data-side="left" bindinput="onRelInput" />
+    </view>
+    <text class="rel-eq">=</text>
+    <view class="rel-side {{focusField === 'relR:' + index ? 'focus' : ''}}" data-f="relR:{{index}}" bind:tap="setFocus">
+      <input class="rel-in" placeholder="如 ○○○" value="{{item.right}}" data-i="{{index}}" data-side="right" bindinput="onRelInput" />
+    </view>
+    <view class="rel-del" data-i="{{index}}" bind:tap="delRelation">✕</view>
+  </view>
+</view>
+
+<!-- ③ 求解问题 -->
+<view class="card">
+  <view class="h2">③ 求解问题</view>
+  <view class="q">
+    <view class="rel-side q-side {{focusField === 'qLeft' ? 'focus' : ''}}" data-f="qLeft" bind:tap="setFocus">
+      <input class="rel-in" placeholder="如 ☆☆+○○" value="{{qLeft}}" data-f="qLeft" bindinput="onQInput" />
+    </view>
+    <text class="rel-eq">=</text>
+    <view class="rel-side q-side {{focusField === 'qRight' ? 'focus' : ''}}" data-f="qRight" bind:tap="setFocus">
+      <input class="rel-in" placeholder="?" value="{{qRight}}" data-f="qRight" bindinput="onQInput" />
+    </view>
+  </view>
+  <view class="keys">
+    <view class="key op" data-op="+" bind:tap="onKey">＋</view>
+    <view class="key op" data-op="−" bind:tap="onKey">−</view>
+    <view class="key op" data-op="?" bind:tap="onKey">?</view>
+    <view class="key op del" bind:tap="onKeyDelete">⌫</view>
+  </view>
+  <view class="hint">先点一下输入框（高亮），再点符号插入；? 只放在一边。</view>
+</view>
+
+<!-- 目标符号 + 开始 -->
+<view class="card">
+  <view class="row">
+    <view class="lbl">目标符号（把算式化简成谁）</view>
+    <view class="grow"></view>
+    <picker mode="selector" range="{{shapeOptions}}" bindchange="setTarget">
+      <view class="target">{{target || '选择'}}</view>
+    </picker>
+  </view>
+  <view class="row" style="margin-top:24rpx">
+    <button class="btn light" bind:tap="loadExample">预填示例</button>
+    <view class="grow"></view>
+    <button class="btn" bind:tap="start">开始求解 →</button>
+  </view>
+</view>

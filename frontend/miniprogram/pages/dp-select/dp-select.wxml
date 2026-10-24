@@ -1,0 +1,66 @@
+<view wx:if="{{loading}}" class="hint pad">加载中…</view>
+<view wx:elif="{{error}}" class="hint pad">出错：{{error}}</view>
+<block wx:else>
+  <!-- 用户 -->
+  <view class="card">
+    <view class="u-row">
+      <picker class="u-pick" mode="selector" range="{{users}}" range-key="name" bindchange="onPickUser">
+        <view class="user-chip" wx:if="{{curUserName}}">👤 {{curUserName}} ▾</view>
+        <view class="user-chip" wx:else>选择用户 ▾</view>
+      </picker>
+      <view class="grow"></view>
+      <view class="acts">
+        <view class="act" hover-class="act-hover" bind:tap="addUser">＋新建</view>
+        <view class="act {{curUserId ? '' : 'dis'}}" hover-class="act-hover" bind:tap="renameUser">改名</view>
+        <view class="act danger {{curUserId ? '' : 'dis'}}" hover-class="act-hover" bind:tap="deleteUser">删除</view>
+      </view>
+    </view>
+    <view wx:if="{{users.length === 0}}" class="hint">还没有用户，先「＋新建」一个吧。</view>
+  </view>
+
+  <!-- 计划列表 -->
+  <view class="card">
+    <view class="row">
+      <view class="h2" style="margin-bottom:0">选择 / 新建计划</view>
+      <view class="grow"></view>
+      <view class="act primary {{curUserId ? '' : 'dis'}}" hover-class="act-hover" bind:tap="toggleNewPlan">＋新建计划</view>
+    </view>
+
+    <view wx:if="{{showNewPlan}}" class="newplan">
+      <picker mode="date" value="{{newPlanDate}}" bindchange="onNewDate">
+        <view class="np-date">📅 {{newPlanDate}}</view>
+      </picker>
+      <view class="np-time" bind:tap="openNewTime">🕗 {{newPlanFirst}}</view>
+      <button class="btn" bind:tap="createPlan">创建计划</button>
+    </view>
+
+    <view wx:if="{{plans.length === 0}}" class="hint" style="margin-top:16rpx">
+      还没有计划，点「＋新建计划」创建一份。
+    </view>
+    <view
+      wx:for="{{plans}}"
+      wx:key="id"
+      class="plan-card"
+      data-id="{{item.id}}"
+      bind:tap="gotoEditor"
+    >
+      <view class="plan-main">
+        <view class="plan-date">{{item.plan_date}}</view>
+        <view class="plan-label" wx:if="{{item.day_label}}">{{item.day_label}}</view>
+      </view>
+      <view class="plan-acts" catch:tap="noop">
+        <view class="act" hover-class="act-hover" data-id="{{item.id}}" catch:tap="startCopy">复制</view>
+        <view class="act danger" hover-class="act-hover" data-id="{{item.id}}" catch:tap="deletePlan">删除</view>
+      </view>
+      <!-- 复制面板：就地展开，用系统日期选择器代替手打输入框。
+           外层 catch:tap 阻止冒泡到 plan-card（否则会误触发进入编辑页）。 -->
+      <view wx:if="{{copyPlanId === item.id}}" class="cp" catch:tap="noop">
+        <picker mode="date" value="{{copyDate}}" bindchange="onCopyDate">
+          <view class="cp-date">📅 {{copyDate}}</view>
+        </picker>
+        <view class="act" hover-class="act-hover" catch:tap="cancelCopy">取消</view>
+        <view class="act primary" hover-class="act-hover" catch:tap="doCopy">复制到这天</view>
+      </view>
+    </view>
+  </view>
+</block>

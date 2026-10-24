@@ -1,0 +1,43 @@
+.hero {
+  padding: 48rpx 32rpx 24rpx;
+}
+.hero-title {
+  font-size: 44rpx;
+  font-weight: 800;
+}
+.hero-sub {
+  margin-top: 12rpx;
+  color: #7a8499;
+  font-size: 26rpx;
+}
+.tool-card {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  background: #fff;
+  border: 1rpx solid #e3e8f0;
+  border-radius: 24rpx;
+  padding: 32rpx;
+  margin: 0 24rpx 24rpx;
+}
+.tool-ico {
+  font-size: 52rpx;
+}
+.tool-main {
+  flex: 1;
+  min-width: 0;
+}
+.tool-name {
+  font-size: 34rpx;
+  font-weight: 700;
+}
+.tool-desc {
+  margin-top: 8rpx;
+  color: #7a8499;
+  font-size: 24rpx;
+  line-height: 1.5;
+}
+.tool-arrow {
+  color: #b6bdcc;
+  font-size: 44rpx;
+}

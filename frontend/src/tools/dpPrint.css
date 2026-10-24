@@ -26,7 +26,14 @@
 @media print {
   @page {
     size: A4 portrait;
-    margin: 10mm;
+    margin: 0; /* 页边距为 0：浏览器自动去掉页眉页脚（网址/日期），纸条自己留白 */
+  }
+
+  html,
+  body {
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #fff;
   }
 
   #root {
@@ -37,7 +44,7 @@
     display: block;
     width: 80mm;
     border: 1px dashed #999; /* 裁切参考线 */
-    padding: 6mm 5mm;
+    padding: 8mm 6mm;
   }
 
   .dp-print-strip tr {

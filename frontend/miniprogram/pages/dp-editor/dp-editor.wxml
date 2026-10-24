@@ -1,0 +1,152 @@
+<view wx:if="{{loading}}" class="hint pad">加载中…</view>
+<view wx:elif="{{error}}" class="hint pad">出错：{{error}}</view>
+<block wx:else>
+  <!-- 头部：标题 + 模式切换 + 打印 -->
+  <view class="card head">
+    <view class="row">
+      <view class="title">{{plan.plan_date}}</view>
+      <view class="lbl" wx:if="{{plan.day_label}}">（{{plan.day_label}}）</view>
+      <view class="grow"></view>
+      <view class="seg">
+        <view class="seg-btn {{viewMode === 'view' ? 'on' : ''}}" bind:tap="setView">查看</view>
+        <view class="seg-btn {{viewMode === 'edit' ? 'on' : ''}}" bind:tap="setEdit">编辑</view>
+      </view>
+      <view class="printbtn" bind:tap="genPrint">🖨 清单</view>
+    </view>
+    <view wx:if="{{saveState === 'error'}}" class="save error">保存失败，请检查网络后重试</view>
+  </view>
+
+  <!-- 开始时间 + 日期备注（仅编辑模式） -->
+  <view wx:if="{{viewMode === 'edit'}}" class="card">
+    <view class="row">
+      <view class="grow">
+        <view class="lbl">首个任务开始时间</view>
+        <view class="timebtn" bind:tap="openFirstTime">🕗 {{plan.first_start || '07:00'}}</view>
+      </view>
+      <view class="grow">
+        <view class="lbl">日期备注（可选）</view>
+        <input class="in" placeholder="如：周六在家" value="{{plan.day_label}}" bindinput="onDayLabel" />
+      </view>
+    </view>
+  </view>
+
+  <!-- 时间轴 -->
+  <view wx:if="{{view.length === 0}}" class="card hint">
+    还没有任务，切到「编辑」用下面的按钮快速添加。
+  </view>
+
+  <view
+    wx:for="{{view}}"
+    wx:key="index"
+    id="task-{{index}}"
+    class="task {{'k-' + item.kind}} {{viewMode === 'view' ? 'viewing' : ''}} {{dragging === index ? 'dragging' : ''}}"
+  >
+    <view class="row">
+      <view
+        class="grip"
+        data-i="{{index}}"
+        bind:longpress="dragStart"
+        catch:touchmove="dragMove"
+        catch:touchend="dragEnd"
+      >⠿</view>
+      <view class="t-time">{{item.timeText}}</view>
+      <view class="badge {{'b-' + item.kind}}">{{item.kindLabel}}</view>
+      <view class="grow"></view>
+      <view class="mini-acts">
+        <view class="mini-btn edit" data-i="{{index}}" bind:tap="editTask">✎</view>
+        <view class="mini-btn {{item.isFirst ? 'dis' : ''}}" data-i="{{index}}" data-dir="-1" bind:tap="moveTask">↑</view>
+        <view class="mini-btn {{item.isLastOne ? 'dis' : ''}}" data-i="{{index}}" data-dir="1" bind:tap="moveTask">↓</view>
+      </view>
+    </view>
+
+    <!-- 查看态 -->
+    <block wx:if="{{viewMode === 'view'}}">
+      <view class="v-title">{{item.title || '（未命名任务）'}}</view>
+      <view class="v-detail" wx:if="{{item.detail}}">{{item.detail}}</view>
+      <view class="v-meta">
+        时长 {{item.durText}}<text wx:if="{{item.restText}}"> · 休息 {{item.restText}} 分钟</text>
+      </view>
+    </block>
+
+    <!-- 编辑态 -->
+    <block wx:else>
+      <!-- adjust-position=false：键盘弹出时不自动把页面顶起，否则会抵消 scrollToTask 的定位，
+           导致跳转后选中的任务标题被顶出可视区。cursor-spacing 控制键盘与输入框的间距。 -->
+      <input
+        class="t-title"
+        placeholder="任务标题"
+        value="{{item.title}}"
+        data-i="{{index}}"
+        bindinput="onTitle"
+        focus="{{focusIndex === index}}"
+        adjust-position="{{false}}"
+        cursor-spacing="24"
+      />
+      <textarea class="t-detail" placeholder="详情（可选）" value="{{item.detail}}" data-i="{{index}}" bindinput="onDetail" auto-height />
+      <view class="ctl">
+        <stepper label="时长" value="{{item.duration_min}}" min="{{5}}" step="{{5}}" quick="{{[15, 30, 45, 60, 90]}}" data-i="{{index}}" bind:change="onDuration" />
+      </view>
+      <view class="ctl" wx:if="{{item.canRest}}">
+        <stepper
+          label="之后休息"
+          value="{{item.rest_after_min}}"
+          min="{{0}}"
+          step="{{5}}"
+          quick="{{[10, 20, 30, 40, 50, 60]}}"
+          extraText="{{item.rest_after_min > 0 ? '或者' : ''}}"
+          extraBtn="{{item.rest_after_min > 0 ? '不休息' : ''}}"
+          index="{{index}}"
+          data-i="{{index}}"
+          bind:change="onRest"
+          bind:extrabtn="noRest"
+        />
+      </view>
+      <view class="row task-acts">
+        <view class="act" hover-class="act-hover" data-i="{{index}}" catch:tap="dupTask">复制</view>
+        <view class="act danger" hover-class="act-hover" data-i="{{index}}" catch:tap="delTask">删除</view>
+      </view>
+    </block>
+  </view>
+
+  <view wx:if="{{endText}}" class="end">当日结束：{{endText}}</view>
+
+  <!-- 快速插入：编辑态显示；空列表时始终显示 -->
+  <view wx:if="{{viewMode === 'edit' || view.length === 0}}" class="card">
+    <view class="lbl">快速插入</view>
+    <view class="chips">
+      <view wx:for="{{presets}}" wx:key="title" class="chip preset" hover-class="chip-hover" data-i="{{index}}" catch:tap="addPreset">＋{{item.title}}</view>
+      <!-- 自定义任务与管理常用任务同行 -->
+      <view class="chip" hover-class="chip-hover" catch:tap="addCustom">＋自定义任务</view>
+      <view class="act" hover-class="act-hover" catch:tap="toggleManage">{{showCommon ? '收起管理' : '管理常用任务'}}</view>
+    </view>
+
+    <block wx:if="{{common.length}}">
+      <view class="lbl" style="margin-top:20rpx">常用任务</view>
+      <view class="chips">
+        <view wx:for="{{common}}" wx:key="id" class="chip" hover-class="chip-hover" data-i="{{index}}" catch:tap="addCommon">＋{{item.title}}</view>
+      </view>
+    </block>
+
+    <!-- 常用任务管理 -->
+    <view wx:if="{{showCommon}}" class="manage">
+        <view wx:for="{{common}}" wx:key="id" class="mg-row">
+          <text class="mg-name">{{item.title}}</text>
+          <text class="mg-dur">{{item.duration_min}} 分钟</text>
+          <view class="grow"></view>
+          <button class="btn mini danger" data-i="{{index}}" bind:tap="delCommonTask">删除</button>
+        </view>
+        <view class="mg-add">
+          <input class="in grow" placeholder="常用任务标题" value="{{commonTitle}}" bindinput="onCommonTitle" />
+          <stepper value="{{commonDur}}" min="{{5}}" step="{{5}}" unit="分钟" bind:change="onCommonDur" />
+          <button class="btn mini" bind:tap="addCommonTask">＋添加</button>
+        </view>
+    </view>
+  </view>
+
+  <view class="hint pad-h">提示：🖨 清单会生成纸条样式图片，长按可保存/转发，打印时选择该图片即可。</view>
+
+  <time-picker visible="{{showTimePicker}}" value="{{plan.first_start || '07:00'}}" bind:change="onFirstTime" bind:cancel="onFirstTimeCancel" />
+
+  <!-- 打印清单离屏画布 -->
+  <canvas type="2d" id="printCanvas" class="print-canvas"></canvas>
+</block>

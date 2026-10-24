@@ -21,6 +21,8 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
+from mp_family import init_mp_db
+from mp_family import router as mp_router
 from pydantic import BaseModel
 
 app = FastAPI(title="mini_tools backend")
@@ -35,6 +37,7 @@ app.add_middleware(
 
 init_db()
 init_dp_db()
+init_mp_db()
 
 HERE = Path(__file__).resolve().parent
 STATIC_DIR = HERE / "static"
@@ -61,6 +64,9 @@ def get_tools():
 
 # daily_plan 工具：用户 / 计划 / 任务 / 常用任务 的 CRUD
 app.include_router(dp_router)
+
+# 小程序用户域：微信登录 + 家庭制（孩子用户挂到家庭下）
+app.include_router(mp_router)
 
 
 @app.post("/api/experiments")

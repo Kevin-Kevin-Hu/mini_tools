@@ -1,0 +1,60 @@
+<view wx:if="{{!me}}" class="card">
+  <view class="hint">正在登录…（微信静默登录，无需操作）</view>
+</view>
+
+<block wx:else>
+  <!-- 身份卡 -->
+  <view class="card">
+    <view class="row">
+      <view class="avatar">{{me.user.nickname ? me.user.nickname[0] : '我'}}</view>
+      <view class="grow">
+        <view class="nick">{{me.user.nickname}}</view>
+        <view class="hint" bind:tap="renameMe">点此修改昵称</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 未加入家庭：引导 -->
+  <view wx:if="{{!me.family}}" class="card">
+    <view class="h2">加入家庭</view>
+    <view class="hint">
+      家庭是使用本工具的单位。新建一个家庭，或用家人分享给你的 6 位家庭码加入。
+    </view>
+    <view class="btns">
+      <button class="btn" bind:tap="createFamily">＋ 新建家庭</button>
+      <button class="btn light" bind:tap="joinFamily">用家庭码加入</button>
+    </view>
+  </view>
+
+  <!-- 已加入家庭 -->
+  <view wx:else class="card">
+    <view class="row">
+      <view class="h2" style="margin-bottom:0">{{me.family.name}}</view>
+      <view class="grow"></view>
+      <view class="mini-btn" bind:tap="renameFamily">改名</view>
+    </view>
+
+    <!-- 家庭码：可复制 -->
+    <view class="code-box">
+      <view class="hint">家庭码（分享给家人，输入即可加入）</view>
+      <view class="row" style="margin-top:10rpx">
+        <view class="code">{{me.family.code}}</view>
+        <view class="grow"></view>
+        <view class="copy" bind:tap="copyCode">复制</view>
+      </view>
+    </view>
+
+    <!-- 成员 -->
+    <view class="lbl">家庭成员（{{me.members.length}}）</view>
+    <view wx:for="{{me.members}}" wx:key="id" class="member">
+      <view class="m-avatar">{{item.nickname ? item.nickname[0] : '微'}}</view>
+      <view class="m-name">{{item.nickname}}</view>
+      <view class="hint" wx:if="{{item.ownerId === me.user.id}}">（我）</view>
+    </view>
+
+    <view class="btns">
+      <button class="btn light" bind:tap="leaveFamily">退出家庭</button>
+    </view>
+    <view class="hint">退出后你自己的数据（孩子、计划等）仍然保留在你的账号下，不受影响。</view>
+  </view>
+</block>

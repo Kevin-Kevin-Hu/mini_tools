@@ -17,5 +17,14 @@ backend/*.db
 __pycache__/
 venv/
 
+# 微信小程序凭证（AppSecret 只存后端，不入仓库）
+backend/mp_secrets.py
+backend/mp_token_seed
+
+# 微信开发者工具误在 frontend/ 根目录生成的配置
+# （真实小程序项目是 frontend/miniprogram/，这里的两个是打开错目录的产物，不含有效信息）
+frontend/project.config.json
+frontend/project.private.config.json
+
 # 发布应用时生成的内部标记文件
 *.genie

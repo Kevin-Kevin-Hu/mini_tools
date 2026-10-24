@@ -1,0 +1,33 @@
+<view class="st">
+  <view class="st-head">
+    <view class="st-label" wx:if="{{label}}">{{label}}</view>
+    <!-- 标签后的可选操作（如「或者 不休息」）。用属性而非插槽传入：
+         具名插槽在微信里带 wx:if / 动态内容时不渲染，不可靠。 -->
+    <view class="st-extra" wx:if="{{extraText || extraBtn}}">
+      <text class="st-extra-text" wx:if="{{extraText}}">{{extraText}}</text>
+      <view class="st-extra-btn" wx:if="{{extraBtn}}" bind:tap="onExtraBtn">{{extraBtn}}</view>
+    </view>
+  </view>
+  <view class="st-row">
+    <view class="st-btn" bind:tap="onMinus">−</view>
+    <input
+      class="st-val"
+      type="number"
+      value="{{draft}}"
+      bindinput="onInput"
+      bindfocus="onFocus"
+      bindblur="onBlur"
+    />
+    <view class="st-btn" bind:tap="onPlus">+</view>
+    <text class="st-unit">{{unit}}</text>
+    <view class="st-quick">
+      <view
+        wx:for="{{quick}}"
+        wx:key="*this"
+        class="st-q"
+        data-v="{{item}}"
+        bind:tap="onQuick"
+      >{{item}}</view>
+    </view>
+  </view>
+</view>

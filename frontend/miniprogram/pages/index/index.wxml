@@ -1,0 +1,22 @@
+<view class="hero">
+  <view class="hero-title">EduPace</view>
+  <view class="hero-sub">建立自己的学习计划</view>
+</view>
+
+<view class="tool-card" bind:tap="goDailyPlan">
+  <view class="tool-ico">📅</view>
+  <view class="tool-main">
+    <view class="tool-name">每日计划</view>
+    <view class="tool-desc">只设第一个任务的开始时间，其余自动顺延；支持拖动排序与任务清单</view>
+  </view>
+  <view class="tool-arrow">›</view>
+</view>
+
+<view class="tool-card" bind:tap="goEqualSub">
+  <view class="tool-ico">⚖️</view>
+  <view class="tool-main">
+    <view class="tool-name">等量代换</view>
+    <view class="tool-desc">像解方程一样，把混合图形一步步等价替换，理解符号间的等量关系</view>
+  </view>
+  <view class="tool-arrow">›</view>
+</view>

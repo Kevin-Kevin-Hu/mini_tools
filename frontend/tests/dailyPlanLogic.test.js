@@ -9,6 +9,7 @@ import {
   fmtRange,
   computeSchedule,
   fmtDuration,
+  addDays,
 } from "../src/tools/dailyPlanLogic.js";
 
 test("parseTimeToMin 解析小时分钟", () => {
@@ -92,4 +93,24 @@ test("fmtDuration 格式化", () => {
   assert.equal(fmtDuration(60), "1 小时");
   assert.equal(fmtDuration(90), "1 小时 30 分钟");
   assert.equal(fmtDuration(0), "0 分钟");
+});
+
+// 复制计划时的目标日期 = 源计划日期 +1 天，必须跨月/跨年/闰年都要准
+test("addDays 加减日期", () => {
+  assert.equal(addDays("2026-10-25", 1), "2026-10-26");
+  assert.equal(addDays("2026-10-31", 1), "2026-11-01"); // 跨月
+  assert.equal(addDays("2026-12-31", 1), "2027-01-01"); // 跨年
+  assert.equal(addDays("2028-02-28", 1), "2028-02-29"); // 闰年
+  assert.equal(addDays("2027-02-28", 1), "2027-03-01"); // 平年
+  assert.equal(addDays("2026-03-01", -1), "2026-02-28"); // 负数跨月
+  assert.equal(addDays("2026-10-25", 0), "2026-10-25");
+  // 补零
+  assert.equal(addDays("2026-01-09", 1), "2026-01-10");
+});
+
+test("addDays 入参非法时退回今天，不产生 Invalid Date", () => {
+  const out = addDays("", 1);
+  assert.match(out, /^\d{4}-\d{2}-\d{2}$/);
+  assert.doesNotThrow(() => addDays("bad-date", 3));
+  assert.doesNotThrow(() => addDays(undefined, 3));
 });

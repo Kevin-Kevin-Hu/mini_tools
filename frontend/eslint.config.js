@@ -40,7 +40,45 @@ export default [
       'prefer-const': 'warn',
     },
   },
+  // ---------- 原生微信小程序 ----------
+  // miniprogram/ 不走 Vite：宿主全局（wx / Page / Component / App…）由微信运行时注入，
+  // 模块用 CommonJS（require / module.exports）。不做这套配置的话，
+  // `eslint .` 会对整个小程序目录报 100+ 条 no-undef 误报。
   {
-    ignores: ['node_modules/**', 'static/**', 'dist/**', 'build/**', 'web/**', '*.genie'],
+    files: ['miniprogram/**/*.js'],
+    languageOptions: {
+      ecmaVersion: 2020,
+      sourceType: 'script',
+      globals: {
+        wx: 'readonly',
+        App: 'readonly',
+        getApp: 'readonly',
+        Page: 'readonly',
+        Component: 'readonly',
+        Behavior: 'readonly',
+        getCurrentPages: 'readonly',
+        ...globals.browser,
+        ...globals.commonjs,
+      },
+    },
+    rules: {
+      // 小程序里 console 是主要调试手段，放开
+      'no-console': 'off',
+      // catch (_e) 是"故意吞掉"的写法，别当成未使用变量报错
+      'no-unused-vars': ['error', { caughtErrorsIgnorePattern: '^_', argsIgnorePattern: '^_' }],
+    },
+  },
+  {
+    ignores: [
+      'node_modules/**',
+      'static/**',
+      'dist/**',
+      'build/**',
+      'web/**',
+      '*.genie',
+      // 第三方 SDK 构建产物，不参与本仓库 lint
+      'miniprogram/node_modules/**',
+      'miniprogram/vendor/**',
+    ],
   },
 ]

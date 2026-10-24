@@ -1,0 +1,126 @@
+.row {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  flex-wrap: wrap;
+}
+.grow {
+  flex: 1;
+}
+.lbl {
+  font-size: 24rpx;
+  color: #7a8499;
+  margin-bottom: 10rpx;
+}
+.known-item {
+  font-size: 32rpx;
+  font-weight: 600;
+  padding: 8rpx 0;
+}
+.done {
+  background: #e9f7ee;
+  color: #2e9e5b;
+  font-size: 36rpx;
+  font-weight: 800;
+  border-radius: 16rpx;
+  padding: 20rpx 24rpx;
+}
+.expr {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8rpx;
+  align-items: center;
+}
+.cell {
+  min-width: 72rpx;
+  height: 84rpx;
+  padding: 0 8rpx;
+  border: 1rpx solid #e3e8f0;
+  border-radius: 14rpx;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 44rpx;
+  box-sizing: border-box;
+}
+.cell.op {
+  border: none;
+  background: transparent;
+  color: #7a8499;
+  min-width: 48rpx;
+}
+.cell.sel {
+  border-color: #2f6fed;
+  background: #eef3fe;
+  color: #2f6fed;
+  font-weight: 700;
+}
+.cell.src {
+  border-color: #f2c78c;
+  background: #fdf3e2;
+  color: #e8930c;
+}
+.cell.repl {
+  border-color: #a9dcc0;
+  background: #e9f7ee;
+  color: #2e9e5b;
+}
+.selbar {
+  font-size: 28rpx;
+  margin-bottom: 12rpx;
+}
+.sel-sym {
+  font-weight: 800;
+  color: #2f6fed;
+}
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+}
+.chip {
+  padding: 12rpx 26rpx;
+  border-radius: 30rpx;
+  background: #fff;
+  border: 1rpx solid #e3e8f0;
+  color: #2f6fed;
+  font-size: 26rpx;
+}
+.opt {
+  margin-top: 16rpx;
+  border: 1rpx solid #d5e2fc;
+  background: #f7faff;
+  border-radius: 16rpx;
+  padding: 18rpx 22rpx;
+  font-size: 30rpx;
+}
+.opt-src {
+  font-weight: 700;
+  color: #e8930c;
+}
+.opt-arrow {
+  color: #7a8499;
+}
+.opt-dst {
+  font-weight: 700;
+  color: #2e9e5b;
+}
+.opt-rule {
+  margin-top: 6rpx;
+  font-size: 22rpx;
+  color: #7a8499;
+}
+.step {
+  margin-top: 14rpx;
+}
+.mini-expr .cell {
+  min-width: 52rpx;
+  height: 64rpx;
+  font-size: 32rpx;
+}
+.step-meta {
+  margin-top: 8rpx;
+  font-size: 24rpx;
+  color: #7a8499;
+}
