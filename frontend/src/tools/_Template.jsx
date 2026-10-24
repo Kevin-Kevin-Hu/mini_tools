@@ -16,19 +16,19 @@
 //   - 本工具独有的样式，新建同名 YourTool.css 并在本文件 import
 //   - 需要孩子点选输入时，参考 EqualSubstitution 的「操作区键盘」做法（不依赖键盘）
 // ============================================================
-import { useState } from 'react'
-import { useExperiment } from '../shared/useExperiment.js'
+import { useState } from "react";
+import { useExperiment } from "../shared/useExperiment.js";
 // import './YourTool.css'
 
 export default function YourTool({ tool }) {
   // 通用实验记录：完成时调用 record(params, result, steps)，自动存后端
-  const { saved, record } = useExperiment(tool.id)
+  const { saved, record } = useExperiment(tool.id);
 
-  const [done, setDone] = useState(false)
+  const [done, setDone] = useState(false);
 
   function handleFinish() {
-    setDone(true)
-    record({ /* 题目参数 */ }, '答案描述', 1)
+    setDone(true);
+    record({/* 题目参数 */}, "答案描述", 1);
   }
 
   return (
@@ -49,10 +49,8 @@ export default function YourTool({ tool }) {
       </section>
 
       {done && (
-        <div className="done">
-          完成！{saved && <span className="saved"> · 已保存 ✓</span>}
-        </div>
+        <div className="done">完成！{saved && <span className="saved"> · 已保存 ✓</span>}</div>
       )}
     </>
-  )
+  );
 }

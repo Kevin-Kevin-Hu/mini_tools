@@ -1,6 +1,6 @@
-import { Routes, Route } from 'react-router-dom'
-import Hub from './pages/Hub.jsx'
-import ToolPage from './pages/ToolPage.jsx'
+import { Routes, Route } from "react-router-dom";
+import Hub from "./pages/Hub.jsx";
+import ToolPage from "./pages/ToolPage.jsx";
 
 export default function App() {
   return (
@@ -8,5 +8,5 @@ export default function App() {
       <Route path="/" element={<Hub />} />
       <Route path="/tool/:id" element={<ToolPage />} />
     </Routes>
-  )
+  );
 }

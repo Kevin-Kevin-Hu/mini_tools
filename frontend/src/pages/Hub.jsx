@@ -1,20 +1,22 @@
-import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
-import { getTools } from '../api.js'
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import { getTools } from "../api.js";
 
 export default function Hub() {
-  const [tools, setTools] = useState([])
-  const [err, setErr] = useState(null)
+  const [tools, setTools] = useState([]);
+  const [err, setErr] = useState(null);
 
   useEffect(() => {
-    getTools().then(setTools).catch((e) => setErr(String(e)))
-  }, [])
+    getTools()
+      .then(setTools)
+      .catch((e) => setErr(String(e)));
+  }, []);
 
   // 按学科分组
-  const groups = {}
+  const groups = {};
   tools.forEach((t) => {
-    ;(groups[t.subject] ||= []).push(t)
-  })
+    (groups[t.subject] ||= []).push(t);
+  });
 
   return (
     <div className="wrap">
@@ -29,7 +31,7 @@ export default function Hub() {
             {list.map((t) => (
               <Link className="tool-card" key={t.id} to={`/tool/${t.id}`}>
                 <div className="tool-title">{t.title}</div>
-                <div className="tool-meta">{t.grade || ''}</div>
+                <div className="tool-meta">{t.grade || ""}</div>
                 <div className="tool-summary">{t.summary}</div>
               </Link>
             ))}
@@ -37,5 +39,5 @@ export default function Hub() {
         </section>
       ))}
     </div>
-  )
+  );
 }

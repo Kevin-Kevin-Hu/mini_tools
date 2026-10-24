@@ -9,16 +9,19 @@
   GET  /api/experiments/{tool_id}  按工具查询记录
   GET  /                           静态前端首页（index.html）
 """
+
+import json
+import os
+from pathlib import Path
+
+from daily_plan import init_dp_db
+from daily_plan import router as dp_router
+from db import add_experiment, init_db, list_experiments
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
-from pathlib import Path
-import json
-import os
-
-from db import init_db, add_experiment, list_experiments
 
 app = FastAPI(title="mini_tools backend")
 
@@ -31,6 +34,7 @@ app.add_middleware(
 )
 
 init_db()
+init_dp_db()
 
 HERE = Path(__file__).resolve().parent
 STATIC_DIR = HERE / "static"
@@ -53,6 +57,10 @@ def get_tools():
     if TOOLS_PATH.exists():
         return json.loads(TOOLS_PATH.read_text(encoding="utf-8"))
     return []
+
+
+# daily_plan 工具：用户 / 计划 / 任务 / 常用任务 的 CRUD
+app.include_router(dp_router)
 
 
 @app.post("/api/experiments")
@@ -79,21 +87,32 @@ def read_experiments(tool_id: str):
 if (STATIC_DIR / "assets").exists():
     app.mount("/assets", StaticFiles(directory=STATIC_DIR / "assets"), name="assets")
 
+# index.html 不缓存：它引用带 hash 的 JS/CSS，若被浏览器缓存住，
+# 重新构建后用户刷新仍会加载旧的 asset（看到的是修复前的界面）。
+NO_STORE = {"Cache-Control": "no-store, max-age=0"}
+
+
+def _index_response():
+    idx = STATIC_DIR / "index.html"
+    if idx.exists():
+        return FileResponse(idx, headers=NO_STORE)
+    return None
+
 
 @app.get("/")
 def index():
-    idx = STATIC_DIR / "index.html"
-    if idx.exists():
-        return FileResponse(idx)
+    resp = _index_response()
+    if resp:
+        return resp
     return {"msg": "mini_tools 后端已启动；前端尚未构建（npm run build）"}
 
 
 # 前端用 HashRouter，路由都在 # 后面；这里兜底回首页，避免刷新 404
 @app.get("/{full_path:path}")
 def spa(full_path: str):
-    idx = STATIC_DIR / "index.html"
-    if idx.exists():
-        return FileResponse(idx)
+    resp = _index_response()
+    if resp:
+        return resp
     raise HTTPException(status_code=404, detail="未找到资源")
 
 

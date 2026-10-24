@@ -9,6 +9,7 @@
   student  学生标识（localStorage 生成）
   ts       记录时间
 """
+
 import sqlite3
 from pathlib import Path
 

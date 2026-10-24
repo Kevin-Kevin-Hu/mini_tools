@@ -71,6 +71,16 @@ npm run dev          # 开发：http://localhost:5173（自动把 /api 代理到
 - **移动端适配**：≤560px 布局、加大点按区、禁用双击缩放。
 - **后端记录**：每道题解完自动保存（形状/关系/题目/答案/步数），便于回看薄弱点。
 
+## 已实现的工具：每日计划（daily-plan）
+
+帮用户制定每日计划，自动排程、移动端友好。
+
+- **用户域**：增 / 删 / 改名（删除用户级联清理其计划与常用任务）。
+- **计划域**：按用户管理多日计划（按日期）；设置**第一个任务**的开始时间，其余任务按「时长 + 相邻休息（默认 ≥20 分钟）」自动顺延算出开始/结束时间；支持**拖动排序**（桌面鼠标 + 手机触摸，Pointer Events 统一）与 ↑↓ 调整，顺序一变时间轴实时重排；支持**复制**单任务与复制整份计划到其它日期。
+- **快速插入**：系统预置「休息 / 午餐 / 晚餐」一键插入；用户可维护**常用任务**快速填充。
+- **数据**：后端 `daily_plan.py` 新增 `dp_users / dp_plans / dp_tasks / dp_common_tasks` 四张表与 CRUD，前后端同源持久化（LAN/线上多端通用）。
+- **逻辑**：排程纯函数见 `frontend/src/tools/dailyPlanLogic.js`（已单测）。
+
 ## 如何新增一个工具
 
 推荐从模板起步：`cp frontend/src/tools/_Template.jsx frontend/src/tools/YourTool.jsx`
@@ -108,3 +118,9 @@ npm run dev          # 开发：http://localhost:5173（自动把 /api 代理到
 ## `web/` 目录的定位
 
 `web/equal-substitution.html` 是**最早的单文件原型**，用于快速验证交互，已归档、**不再同步新功能**（React 版 `frontend/src/tools/EqualSubstitution.jsx` 才是正式实现）。新工具不需要在 `web/` 下再写一份。
+
+## 代码规范与工具链
+
+- **硬约束写在 `AGENTS.md`**（给 AI 编码代理遵循），README 只作人类总览。**CI（`.github/workflows/ci.yml`）在 push / PR 时强制校验**，任何一步失败都会阻断合并。
+- 本地改动后自检：`cd frontend && npm run lint && npm run format:check && npm test && npm run build`；后端 `python -m ruff check backend && python -m ruff format --check backend`；文件守卫 `python scripts/check_file_size.py`。
+- 单文件超过 500 行会被文件守卫拦截（存量 `EqualSubstitution.jsx` 暂豁免，待拆分）。
