@@ -1,100 +1,10 @@
-:root {
-  --bg: #f5f7fa;
-  --card: #ffffff;
-  --ink: #243042;
-  --muted: #7a869a;
-  --line: #e3e8f0;
-  --brand: #3b6ef5;
-  --src: #ff8a3d;
-  --src-bg: #fff0e2;
-  --repl: #22a06b;
-  --repl-bg: #e3f7ec;
-  --arrow: #9aa6bb;
-}
-* {
-  box-sizing: border-box;
-}
-body {
-  margin: 0;
-  background: var(--bg);
-  color: var(--ink);
-  font-family: "PingFang SC", "Microsoft YaHei", system-ui, -apple-system, sans-serif;
-  line-height: 1.6;
-}
-/* 表单控件默认不继承字体，会让 ○ 这类符号字形比 ☆ 小一半，必须显式继承 */
-input,
-select,
-button,
-textarea {
-  font-family: inherit;
-}
-.wrap {
-  max-width: 860px;
-  margin: 0 auto;
-  padding: 24px 18px 60px;
-}
-h1 {
-  font-size: 22px;
-  margin: 0 0 4px;
-}
-.sub {
-  color: var(--muted);
-  font-size: 14px;
-  margin: 0 0 20px;
-}
-.card {
-  background: var(--card);
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  padding: 18px 18px 20px;
-  margin-bottom: 18px;
-  box-shadow: 0 1px 3px rgba(20, 40, 80, 0.04);
-}
-.card h2 {
-  font-size: 16px;
-  margin: 0 0 12px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.stepnum {
-  display: inline-flex;
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  background: var(--brand);
-  color: #fff;
-  font-size: 13px;
-  align-items: center;
-  justify-content: center;
-}
-label {
-  font-size: 13px;
-  color: var(--muted);
-  display: block;
-  margin: 10px 0 4px;
-}
-input[type="text"] {
-  width: 100%;
-  padding: 9px 11px;
-  border: 1px solid var(--line);
-  border-radius: 9px;
-  font-size: 18px;
-  letter-spacing: 0.5px;
-  color: var(--ink);
-  background: #fbfcfe;
-}
-#shapesInput,
-.rel-row input,
-#questionInput,
-#questionRight {
-  font-size: 20px;
-  letter-spacing: 2px;
-}
-input[type="text"]:focus {
-  outline: none;
-  border-color: var(--brand);
-}
+/* ============================================================
+   等量代换工具 · 私有样式
+   —— 只服务 EqualSubstitution.jsx。其他工具不要复用这里的类名，
+      通用样式请放 shared/base.css。
+   ============================================================ */
+
+/* ---------- 操作区（图形 / 水果 / 运算符） ---------- */
 .palette {
   display: flex;
   flex-wrap: wrap;
@@ -102,8 +12,7 @@ input[type="text"]:focus {
   margin-top: 8px;
   align-items: center;
 }
-.palette button,
-.chip {
+.palette button {
   border: 1px solid var(--line);
   background: #fff;
   border-radius: 9px;
@@ -147,17 +56,8 @@ input[type="text"]:focus {
   font-size: 17px;
   padding: 7px 10px;
 }
-.chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 18px;
-}
-.chip b {
-  font-size: 13px;
-  color: var(--muted);
-  font-weight: 400;
-}
+
+/* ---------- 等量关系行 ---------- */
 .rel-row {
   display: flex;
   align-items: center;
@@ -182,41 +82,8 @@ input[type="text"]:focus {
   cursor: pointer;
   font-size: 16px;
 }
-.btn {
-  border: none;
-  border-radius: 10px;
-  padding: 10px 16px;
-  font-size: 15px;
-  cursor: pointer;
-}
-.btn.primary {
-  background: var(--brand);
-  color: #fff;
-}
-.btn.ghost {
-  background: #eef2fb;
-  color: var(--brand);
-}
-.btn.light {
-  background: #f1f3f7;
-  color: var(--ink);
-}
-.row {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-  align-items: center;
-  margin-top: 14px;
-}
-select {
-  padding: 9px 10px;
-  border: 1px solid var(--line);
-  border-radius: 9px;
-  font-size: 15px;
-  background: #fbfcfe;
-}
 
-/* solver */
+/* ---------- 解题阶梯 ---------- */
 .goal {
   font-size: 14px;
   color: var(--muted);
@@ -241,6 +108,7 @@ select {
 .arrow b {
   color: var(--ink);
 }
+/* 箭头文字配色：被换掉=橙，换进来=绿，与图形框严格对应 */
 .src-tx {
   color: var(--src);
   font-weight: 600;
@@ -312,6 +180,8 @@ select {
   color: var(--brand);
   box-shadow: 0 0 0 2px var(--brand) inset;
 }
+
+/* ---------- 选中条 / 转换选项 ---------- */
 .selbar {
   font-size: 13px;
   color: var(--muted);
@@ -325,29 +195,6 @@ select {
   color: var(--ink);
   font-size: 16px;
   letter-spacing: 1px;
-}
-.mini {
-  border: 1px solid var(--line);
-  background: #fff;
-  color: var(--brand);
-  border-radius: 7px;
-  font-size: 12px;
-  padding: 3px 8px;
-  cursor: pointer;
-}
-.mini:hover {
-  border-color: var(--brand);
-  background: #f7f9ff;
-}
-.result {
-  margin-left: auto;
-  font-size: 15px;
-  color: var(--muted);
-  white-space: nowrap;
-}
-.result.ok {
-  color: var(--repl);
-  font-weight: 600;
 }
 .options {
   margin: 10px 0 4px 14px;
@@ -377,6 +224,18 @@ select {
 .opt .arrowmini {
   color: var(--brand);
   margin: 0 4px;
+}
+
+/* ---------- 结果 / 图例 / 已知关系 ---------- */
+.result {
+  margin-left: auto;
+  font-size: 15px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.result.ok {
+  color: var(--repl);
+  font-weight: 600;
 }
 .legend {
   display: flex;
@@ -418,83 +277,9 @@ select {
   border-radius: 4px;
   display: inline-block;
 }
-.done {
-  background: var(--repl-bg);
-  color: var(--repl);
-  border: 1px solid var(--repl);
-  border-radius: 10px;
-  padding: 10px 14px;
-  margin-top: 12px;
-  font-weight: 600;
-}
-.done .saved {
-  color: var(--muted);
-  font-weight: 400;
-}
-.hint {
-  font-size: 13px;
-  color: var(--muted);
-  margin-top: 6px;
-}
-
-/* Hub 卡片 */
-.cards {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 12px;
-}
-.tool-card {
-  display: block;
-  text-decoration: none;
-  color: var(--ink);
-  background: #fff;
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  padding: 14px 16px;
-  transition: border-color 0.15s, box-shadow 0.15s, transform 0.1s;
-}
-.tool-card:hover {
-  border-color: var(--brand);
-  box-shadow: 0 4px 14px rgba(59, 110, 245, 0.12);
-  transform: translateY(-2px);
-}
-.tool-title {
-  font-size: 17px;
-  font-weight: 600;
-}
-.tool-meta {
-  font-size: 12px;
-  color: var(--brand);
-  margin: 2px 0 6px;
-}
-.tool-summary {
-  font-size: 13px;
-  color: var(--muted);
-  line-height: 1.5;
-}
-
-/* 手机上打开：加大点按区域、缩小图形避免换行 */
-* {
-  -webkit-text-size-adjust: 100%;
-}
-button,
-.chip,
-.opt,
-.mini {
-  touch-action: manipulation;
-}
+/* ---------- 移动端：本工具专属调整 ---------- */
 @media (max-width: 560px) {
-  .wrap {
-    padding: 16px 12px 40px;
-  }
-  h1 {
-    font-size: 20px;
-  }
-  .card {
-    padding: 14px 12px 16px;
-  }
-  .palette button,
-  .chip {
+  .palette button {
     font-size: 17px;
     padding: 7px 9px;
   }

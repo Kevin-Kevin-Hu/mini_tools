@@ -12,9 +12,12 @@ mini_tools/
 │   ├── src/
 │   │   ├── pages/         # Hub（中心导航）、ToolPage（工具页路由）
 │   │   ├── tools/         # 各工具组件 + 纯逻辑模块
+│   │   │   ├── _Template.jsx           # 新工具模板（从这里复制起步）
 │   │   │   ├── EqualSubstitution.jsx   # 等量代换工具
-│   │   │   └── equalSubLogic.js        # 等价代换核心纯函数（已单测）
-│   │   ├── shared/        # useExperiment（通用实验记录 hook）、layout.css
+│   │   │   ├── EqualSubstitution.css   # 该工具私有样式
+│   │   │   └── equalSubLogic.js        # 等量代换核心纯函数（已单测）
+│   │   ├── shared/        # useExperiment（通用实验记录 hook）、base.css（通用样式）
+│   ├── tests/             # 纯逻辑单测（npm test，node 内置 test runner）
 │   │   ├── api.js         # 调后端
 │   │   ├── App.jsx        # HashRouter
 │   │   └── main.jsx
@@ -70,7 +73,38 @@ npm run dev          # 开发：http://localhost:5173（自动把 /api 代理到
 
 ## 如何新增一个工具
 
-1. 在 `frontend/src/tools/` 下新建组件（参考 `EqualSubstitution.jsx`）。
-2. 在 `frontend/src/pages/ToolPage.jsx` 的 `COMPONENTS` 映射里登记 `id → 组件`。
-3. 在 `backend/tools.json` 增加一条：`{ "id", "title", "subject", "grade", "summary", "component", "path" }`。
-4. 后端**无需改动**（实验记录接口与具体工具解耦）。
+推荐从模板起步：`cp frontend/src/tools/_Template.jsx frontend/src/tools/YourTool.jsx`
+
+1. **写组件**：`frontend/src/tools/YourTool.jsx`
+   - 接收 `tool` 属性（即 `tools.json` 里的一条记录）
+   - **不要**自己套 `<div className="wrap">`——页面外壳（版式 + 返回首页）由 `ToolPage` 统一提供
+   - 通用样式直接用 `shared/base.css` 里的类（`.card` `.btn` `.row` `.mini` `.hint` `.stepnum` `.done` `.sym-input`）
+   - 本工具独有的样式 → 新建同目录 `YourTool.css` 并在组件里 `import './YourTool.css'`，**不要**写进 `base.css`（避免类名冲突）
+2. **登记组件**：在 `frontend/src/pages/ToolPage.jsx` 的 `COMPONENTS` 里加一行 `'your-tool-id': YourTool`。
+   ⚠️ **这步最容易漏**：漏了会显示「该工具尚未实现组件」。
+3. **注册信息**：在 `backend/tools.json` 增加一条
+   ```json
+   { "id": "your-tool-id", "title": "工具名", "subject": "数学", "grade": "小学低段", "summary": "一句话说明" }
+   ```
+   - 只有 `id` / `title` / `subject` / `grade` / `summary` 会被用到（Hub 按 `subject` 分组，链接固定为 `/tool/{id}`）
+   - `id` 必须与第 2 步 `COMPONENTS` 的 key **完全一致**
+4. **后端无需改动**（实验记录接口与具体工具解耦）。
+
+### 可选但推荐
+- **抽纯逻辑**：把可计算的部分放进 `frontend/src/tools/yourToolLogic.js`（纯函数、无 DOM），并在 `frontend/tests/yourToolLogic.test.js` 写单测。跑 `npm test` 验证。
+- **记录实验**：组件里用 `useExperiment(tool.id)`，完成时 `record(params, result, steps)` 自动存后端。
+
+## 前端约定速查
+
+| 事项 | 约定 |
+|---|---|
+| 样式 | 通用 → `shared/base.css`；工具私有 → 同目录 `Xxx.css` |
+| 页面外壳 | `ToolPage` 提供 `.wrap` + 返回首页；工具组件只渲染内容 |
+| 纯逻辑 | 放 `src/tools/xxxLogic.js`，单测放 `tests/` |
+| 测试 | `cd frontend && npm test`（node 内置 test runner，零依赖） |
+| 符号输入 | 输入图形/符号的框加 `className="sym-input"`（更大字号与字距） |
+| 非 ASCII 符号 | **一律按码点处理**：用 `Array.from()`，不要用 `str[i]` / `.length === 1`（emoji 的 length 是 2） |
+
+## `web/` 目录的定位
+
+`web/equal-substitution.html` 是**最早的单文件原型**，用于快速验证交互，已归档、**不再同步新功能**（React 版 `frontend/src/tools/EqualSubstitution.jsx` 才是正式实现）。新工具不需要在 `web/` 下再写一份。

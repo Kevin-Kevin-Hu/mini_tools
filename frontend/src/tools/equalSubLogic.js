@@ -29,6 +29,16 @@ export function parseExpr(str) {
   return tokens
 }
 
+// 形状列表按「码点」解析：空格只是可选分隔。
+// 这样 🍎🍌（连写，emoji 无空格）和 ☆ ○ △（空格分隔）都能识别；
+// 旧写法 split(/\s+/).filter(s => s.length === 1) 会把连写符号整组丢弃，
+// 也会误伤 emoji（'🍎'.length === 2）。
+export function parseShapes(str) {
+  return Array.from(
+    new Set(Array.from(str || '').filter((c) => !/\s/.test(c) && !isOpChar(c) && c !== '?')),
+  )
+}
+
 // 把一侧（忽略运算符视作相加）解析为计数 map
 export function parseSide(str) {
   const m = {}

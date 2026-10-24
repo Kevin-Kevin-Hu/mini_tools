@@ -8,8 +8,10 @@ import {
   evalTarget,
   solveUnknown,
   isOpChar,
+  parseShapes,
 } from './equalSubLogic.js'
 import { useExperiment } from '../shared/useExperiment.js'
+import './EqualSubstitution.css'
 
 const PALETTE = ['★', '☆', '○', '●', '◇', '◆', '△', '▲', '□', '■', '♥', '♦', '⬟', '⬢', '✿', '⬤']
 // 日常水果。emoji 是代理对（JS 里 length=2），所以形状解析一律按「码点」判断，
@@ -21,14 +23,6 @@ const OPERATORS = [
   { k: '?', label: '?', tip: '未知数' },
 ]
 
-// 形状列表按「码点」解析：空格只是可选分隔。
-// 这样 🍎🍌（连写，emoji 无空格）和 ☆ ○ △（空格分隔）都能识别，
-// 旧写法 split(/\s+/) 会把连写的符号当成一个 token 而整组丢掉。
-function parseShapes(str) {
-  return Array.from(
-    new Set(Array.from(str || '').filter((c) => !/\s/.test(c) && !isOpChar(c) && c !== '?')),
-  )
-}
 
 function TokensView({ tokens, isCurrent, selCur, green, mark, onClick }) {
   return tokens.map((t, idx) => {
@@ -148,6 +142,7 @@ export default function EqualSubstitution({ tool }) {
       <div className="rel-row" key={idx}>
         <input
           type="text"
+          className="sym-input"
           data-field={`rel-${idx}-left`}
           value={r.left}
           placeholder="如 ☆☆"
@@ -159,6 +154,7 @@ export default function EqualSubstitution({ tool }) {
         <span className="eq">=</span>
         <input
           type="text"
+          className="sym-input"
           data-field={`rel-${idx}-right`}
           value={r.right}
           placeholder="如 ○○○"
@@ -376,7 +372,7 @@ export default function EqualSubstitution({ tool }) {
   // ---------- 渲染：构建区 ----------
   if (view === 'builder') {
     return (
-      <div className="wrap">
+      <>
         <h1>{tool.title} · 符号意识练习</h1>
         <p className="sub">
           先构建题目（形状 / 等量关系 / 求解问题），再像解方程一样，一步步把图形等价替换，直到化成目标单位。
@@ -393,6 +389,7 @@ export default function EqualSubstitution({ tool }) {
               id="shapesInput"
               ref={shapesInputRef}
               type="text"
+              className="sym-input"
               data-field="shapes"
               value={shapesStr}
               placeholder="例如：☆ ○ △"
@@ -455,6 +452,7 @@ export default function EqualSubstitution({ tool }) {
           <div className="rel-row">
             <input
               type="text"
+              className="sym-input"
               data-field="qLeft"
               value={qLeft}
               placeholder="左边，如 ☆☆+○○"
@@ -464,6 +462,7 @@ export default function EqualSubstitution({ tool }) {
             <span className="eq" style={{ fontSize: 20 }}>=</span>
             <input
               type="text"
+              className="sym-input"
               data-field="qRight"
               value={qRight}
               placeholder="右边，如 ? 或 ?+○"
@@ -506,14 +505,14 @@ export default function EqualSubstitution({ tool }) {
             </span>
           </div>
         </section>
-      </div>
+      </>
     )
   }
 
   // ---------- 渲染：解题区 ----------
   const sideTxt = workSide === 'left' ? '左边' : '右边'
   return (
-    <div className="wrap">
+    <>
       <h1>{tool.title} · 解题阶梯</h1>
       <section className="card">
         <h2>
@@ -624,6 +623,6 @@ export default function EqualSubstitution({ tool }) {
           </button>
         </div>
       </section>
-    </div>
+    </>
   )
 }

@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams, Link } from 'react-router-dom'
 import EqualSubstitution from '../tools/EqualSubstitution.jsx'
 import { getTools } from '../api.js'
 
-// id → 组件映射（新增工具时在此登记）
+// id → 组件映射（新增工具时在此登记；id 必须与 backend/tools.json 里的 id 一致）
 const COMPONENTS = {
   'equal-substitution': EqualSubstitution,
 }
@@ -29,5 +29,14 @@ export default function ToolPage() {
   const C = COMPONENTS[id]
   if (!C) return <div className="wrap"><p>该工具尚未实现组件：{id}</p></div>
 
-  return <C tool={tool} />
+  // 统一页面外壳：每个工具都自动获得 .wrap 版式 + 返回首页入口，
+  // 工具组件本身只负责渲染内容（不要再自己套 .wrap）。
+  return (
+    <div className="wrap">
+      <div className="toolbar">
+        <Link className="back-link" to="/">← 全部工具</Link>
+      </div>
+      <C tool={tool} />
+    </div>
+  )
 }
