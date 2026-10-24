@@ -1,0 +1,123 @@
+/* ---------- 打印纸条（v3 窄条版式） ----------
+   屏幕上完全隐藏；window.print() 时隐藏整个应用，
+   仅输出 body 下 Portal 挂载的 80mm 窄条。 */
+
+.dp-print-strip {
+  display: none;
+  font-family: 'Songti SC', 'SimSun', serif;
+  color: #1a2233;
+}
+
+.dp-print-btn {
+  border: 1px solid var(--line);
+  background: #fff;
+  border-radius: 20px;
+  padding: 6px 14px;
+  font: inherit;
+  font-size: 14px;
+  color: var(--brand);
+  cursor: pointer;
+}
+.dp-print-btn:hover {
+  background: #f3f6fc;
+  border-color: var(--brand);
+}
+
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 10mm;
+  }
+
+  #root {
+    display: none !important;
+  }
+
+  .dp-print-strip {
+    display: block;
+    width: 80mm;
+    border: 1px dashed #999; /* 裁切参考线 */
+    padding: 6mm 5mm;
+  }
+
+  .dp-print-strip tr {
+    break-inside: avoid;
+  }
+
+  .s-head {
+    text-align: center;
+    border-bottom: 2px solid #1a2233;
+    padding-bottom: 10px;
+  }
+  .s-title {
+    font-size: 17px;
+    font-weight: 700;
+    letter-spacing: 1px;
+  }
+  .s-sub {
+    margin-top: 5px;
+    font-size: 10.5px;
+    color: #44506a;
+  }
+
+  .s-list {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 8px;
+  }
+  .s-list th,
+  .s-list td {
+    border: 1px solid #2a3550;
+    padding: 7px 6px;
+    text-align: left;
+    vertical-align: middle;
+    font-size: 12px;
+  }
+  .s-list th {
+    background: #eef1f6;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    padding: 6px;
+  }
+  .s-list td.s-time {
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+    width: 92px;
+    font-size: 11px;
+  }
+  .s-list td.s-name {
+    font-weight: 700;
+    word-break: break-word;
+  }
+  .s-list td.s-name .s-detail {
+    display: block;
+    font-weight: 400;
+    color: #44506a;
+    font-size: 10.5px;
+    margin-top: 2px;
+  }
+  .s-tag {
+    display: inline-block;
+    font-size: 9.5px;
+    border: 1px solid #2a3550;
+    border-radius: 2px;
+    padding: 0 3px;
+    margin-left: 4px;
+    font-weight: 400;
+    vertical-align: 1px;
+  }
+
+  .s-foot {
+    margin-top: 14px;
+    border-top: 1px solid #2a3550;
+    padding-top: 10px;
+    font-size: 11px;
+    color: #44506a;
+  }
+  .s-sign {
+    display: inline-block;
+    border-bottom: 1px solid #2a3550;
+    min-width: 96px;
+  }
+}

@@ -1,0 +1,117 @@
+/* ============================================================
+   DailyPlan 选择页 + 任务页头部样式
+   （从 DailyPlan.css 拆出，避免单文件超 500 行守卫）
+   ============================================================ */
+
+/* ---------- 计划列表（选择页） ---------- */
+.dp-addplan {
+  margin-left: auto;
+  font-size: 13px;
+  padding: 5px 12px;
+}
+.dp-planlist {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+.dp-plan-card {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 14px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--brand);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: box-shadow 0.15s, transform 0.05s;
+}
+.dp-plan-card:hover {
+  box-shadow: 0 6px 16px rgba(20, 40, 80, 0.12);
+  border-color: var(--brand);
+}
+.dp-plan-card:active {
+  transform: scale(0.99);
+}
+.dp-plan-card-main {
+  flex: 1;
+  min-width: 0;
+}
+.dp-plan-date {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--ink);
+}
+.dp-plan-label {
+  font-size: 13px;
+  color: var(--brand);
+  margin-top: 2px;
+}
+.dp-plan-sub {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+.dp-plan-card-actions {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+/* ---------- 任务页头部（返回 + 标题 + 模式） ---------- */
+.dp-editor-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+.dp-back {
+  border: 1px solid var(--line);
+  background: #fff;
+  border-radius: 20px;
+  padding: 6px 14px;
+  font: inherit;
+  font-size: 14px;
+  color: var(--brand);
+  cursor: pointer;
+}
+.dp-back:hover {
+  background: #f3f6fc;
+  border-color: var(--brand);
+}
+.dp-editor-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--ink);
+}
+.dp-editor-label {
+  color: var(--brand);
+  font-weight: 600;
+  margin-left: 2px;
+}
+/* 模式切换 + 打印按钮：同一行靠右 */
+.dp-head-tools {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.dp-head-tools .dp-mode {
+  margin-left: 0;
+}
+
+/* ---------- 手机端适配 ---------- */
+@media (max-width: 560px) {
+  .dp-addplan {
+    margin-left: 0;
+    width: 100%;
+  }
+  .dp-planlist {
+    grid-template-columns: 1fr;
+  }
+  .dp-editor-head {
+    gap: 8px;
+  }
+}

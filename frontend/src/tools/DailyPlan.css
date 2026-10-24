@@ -1,0 +1,463 @@
+/* ============================================================
+   DailyPlan 专属样式（daily_plan 每日计划工具）
+   仅放本工具用到的类，避免污染 base.css。
+   设计目标：PC / 手机都好用——大点按区、清晰时间轴、友好的时长/休息步进器。
+   ============================================================ */
+
+/* ---------- 通用栏（用户 / 计划） ---------- */
+.dp-userbar,
+.dp-planbar {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.dp-userbar select,
+.dp-planbar select {
+  flex: 1 1 200px;
+  min-width: 160px;
+}
+
+/* 内联表单（新建用户 / 选择日期） */
+.dp-inlineform {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-top: 12px;
+  padding: 10px 12px;
+  background: #f7f9ff;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+.dp-inlineform input[type="text"],
+.dp-inlineform input[type="date"] {
+  flex: 1 1 160px;
+}
+input[type="date"],
+input[type="time"] {
+  padding: 9px 10px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  font-size: 16px; /* >=16px 避免手机端聚焦时自动放大 */
+  background: #fbfcfe;
+  color: var(--ink);
+}
+
+.dp-planmeta {
+  margin-top: 12px;
+}
+.dp-planmeta input {
+  width: 100%;
+}
+
+/* 保存状态 */
+.dp-save {
+  margin-left: auto;
+  font-size: 12px;
+  font-weight: 400;
+  padding: 2px 8px;
+  border-radius: 20px;
+}
+.dp-save-saved { background: var(--repl-bg); color: var(--repl); }
+.dp-save-saving { background: #eef2fb; color: var(--brand); }
+.dp-save-error { background: #fdecec; color: #d6453d; }
+
+/* 第一个任务开始时间 */
+.dp-firststart {
+  margin-bottom: 14px;
+  padding: 12px 14px;
+  background: #f7f9ff;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+/* 自绘时间选择器（两列滚动列表，滚到两端即停，不循环） */
+.dp-tp {
+  position: relative;
+  display: inline-block;
+  margin-top: 6px;
+}
+.dp-tp-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 124px;
+  padding: 8px 12px;
+  font: inherit;
+  font-size: 18px;
+  font-variant-numeric: tabular-nums;
+  color: #1f2430;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  cursor: pointer;
+}
+.dp-tp-trigger:hover {
+  border-color: var(--brand);
+}
+.dp-tp-trigger:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 1px;
+}
+.dp-tp-val {
+  flex: 1;
+  text-align: left;
+}
+.dp-tp-icon {
+  color: var(--brand);
+  font-size: 17px;
+  line-height: 1;
+}
+.dp-tp-pop {
+  position: absolute;
+  z-index: 30;
+  top: calc(100% + 6px);
+  left: 0;
+  width: 200px;
+  padding: 8px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow: 0 14px 30px rgba(20, 30, 60, 0.16);
+}
+.dp-tp-head {
+  display: flex;
+  padding: 0 2px 4px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.dp-tp-head span {
+  flex: 1;
+  text-align: center;
+}
+.dp-tp-cols {
+  display: flex;
+  gap: 6px;
+}
+.dp-tp-col {
+  flex: 1;
+  height: 216px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  background: #fbfcff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+.dp-tp-item {
+  display: block;
+  width: 100%;
+  padding: 8px 0;
+  font: inherit;
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+  color: #46506a;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+}
+.dp-tp-item:hover {
+  background: #eef3ff;
+}
+.dp-tp-item.is-on {
+  background: var(--brand);
+  color: #fff;
+  font-weight: 600;
+}
+.dp-tp-foot {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+.dp-tp-foot .mini.is-on {
+  background: var(--brand);
+  border-color: var(--brand);
+  color: #fff;
+}
+.dp-tp-done {
+  margin-left: auto;
+  padding: 4px 10px;
+  font: inherit;
+  font-size: 13px;
+  color: #fff;
+  background: var(--brand);
+  border: 1px solid var(--brand);
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+/* ---------- 时间轴 ---------- */
+.dp-timeline {
+  display: flex;
+  flex-direction: column;
+}
+/* 「不休息」：编辑态把休息时长归零的快捷入口 */
+.dp-norest { margin-left: 6px; }
+
+.dp-task {
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--brand);
+  border-radius: 12px;
+  padding: 12px 14px;
+  background: #fff;
+  margin-bottom: 2px;
+}
+.dp-task-break { border-left-color: #f0a93d; background: #fffaf0; }
+.dp-task-meal { border-left-color: #e06b9c; background: #fff5fa; }
+
+.dp-task-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+.dp-grip {
+  cursor: grab;
+  color: var(--muted);
+  font-size: 18px;
+  line-height: 1;
+  padding: 2px 4px;
+  touch-action: none; /* 触摸拖动时不触发页面滚动 */
+  user-select: none;
+  -webkit-user-select: none;
+}
+.dp-grip:active {
+  cursor: grabbing;
+}
+.dp-dragging {
+  opacity: 0.9;
+  box-shadow: 0 6px 18px rgba(20, 40, 80, 0.18);
+  transform: scale(1.01);
+}
+.dp-time {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--ink);
+}
+.dp-badge {
+  font-size: 12px;
+  padding: 2px 9px;
+  border-radius: 20px;
+  background: #eef2fb;
+  color: var(--brand);
+}
+.dp-badge-break { background: #fdeecd; color: #b9791a; }
+.dp-badge-meal { background: #fbdceb; color: #c14b85; }
+.dp-task-actions {
+  margin-left: auto;
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+/* 查看态的轻量箭头组：与时间同行靠右，移动端也不换行 */
+.dp-nav {
+  margin-left: auto;
+  display: inline-flex;
+  gap: 4px;
+}
+
+/* ---------- 查看 / 编辑 切换 ---------- */
+.dp-mode {
+  margin-left: auto;
+  display: inline-flex;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  overflow: hidden;
+  background: #f3f6fc;
+}
+.dp-mode button {
+  border: 0;
+  background: transparent;
+  font: inherit;
+  font-size: 13px;
+  padding: 4px 14px;
+  cursor: pointer;
+  color: var(--muted);
+}
+.dp-mode button.on {
+  background: var(--brand);
+  color: #fff;
+  font-weight: 600;
+}
+
+/* ---------- 查看态：极简只读展示 ---------- */
+.dp-task-view {
+  padding: 10px 14px;
+}
+.dp-view-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--ink);
+  margin-top: 2px;
+}
+.dp-view-detail {
+  font-size: 13px;
+  color: var(--muted);
+  margin-top: 3px;
+  white-space: pre-wrap;
+}
+.dp-view-meta {
+  font-size: 13px;
+  color: var(--muted);
+  margin-top: 6px;
+}
+
+.dp-title {
+  width: 100%;
+  font-size: 16px;
+  font-weight: 600;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fbfcfe;
+}
+.dp-detail {
+  width: 100%;
+  margin-top: 8px;
+  font-family: inherit;
+  font-size: 14px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fbfcfe;
+  resize: vertical;
+}
+
+.dp-controls {
+  display: flex;
+  gap: 18px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+.dp-ctl label {
+  margin: 0 0 4px;
+  font-size: 12px;
+}
+
+/* 步进器 */
+.dp-stepper {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.dp-stepbtn {
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--line);
+  background: #fff;
+  border-radius: 8px;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--brand);
+}
+.dp-stepbtn:active { background: #eef2fb; }
+.dp-stepval {
+  width: 56px;
+  height: 34px;
+  text-align: center;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  font-size: 16px;
+  background: #fbfcfe;
+  padding: 0;
+}
+.dp-stepunit { font-size: 13px; color: var(--muted); }
+.dp-quick {
+  display: flex;
+  gap: 4px;
+  margin-left: 4px;
+  flex-wrap: wrap;
+}
+
+.dp-end {
+  margin-top: 12px;
+  font-weight: 600;
+  color: var(--ink);
+  text-align: right;
+  font-size: 14px;
+}
+
+/* ---------- 快速插入 ---------- */
+.dp-insert {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px dashed var(--line);
+}
+.dp-insert-title { font-size: 13px; color: var(--muted); margin-bottom: 8px; }
+.dp-insert-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.dp-preset,
+.dp-common-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--line);
+  background: #fff;
+  border-radius: 10px;
+  padding: 9px 12px;
+  font-size: 14px;
+  cursor: pointer;
+  color: var(--ink);
+}
+.dp-preset b,
+.dp-common-chip b {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--muted);
+}
+.dp-preset:active,
+.dp-common-chip:active { background: #f7f9ff; border-color: var(--brand); }
+.dp-preset-break { border-color: #f0c98a; }
+.dp-preset-meal { border-color: #f0b3d2; }
+
+/* ---------- 常用任务管理 ---------- */
+.dp-common { margin-top: 16px; }
+.dp-common-box {
+  margin-top: 10px;
+  padding: 12px;
+  background: #f7f9ff;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.dp-common-item {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+  padding: 8px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+.dp-common-item input[type="text"] {
+  flex: 1 1 120px;
+  font-size: 14px;
+  padding: 7px 9px;
+}
+.dp-common-item .dp-ctl { flex: 1 1 100%; }
+
+/* ---------- 手机端适配 ---------- */
+@media (max-width: 560px) {
+  /* 窄屏不再整列拉伸：控件保持正常大小，放不下自动换行 */
+  .dp-controls { gap: 12px; }
+  .dp-ctl { flex: 1 1 100%; }
+  .dp-task-actions { margin-left: 0; width: 100%; }
+  .dp-time { font-size: 17px; }
+  .dp-stepbtn { width: 40px; height: 40px; font-size: 22px; }
+  .dp-stepval { width: 64px; height: 40px; font-size: 18px; }
+  .dp-preset,
+  .dp-common-chip { flex: 1 1 auto; justify-content: center; padding: 12px; }
+}
