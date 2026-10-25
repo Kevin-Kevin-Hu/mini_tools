@@ -125,6 +125,38 @@
   font-size: 32rpx;
   font-weight: 600;
 }
+/* 完成态：勾选圈（查看态，任务行最左侧） */
+.done-btn {
+  width: 44rpx;
+  height: 44rpx;
+  border-radius: 50%;
+  border: 3rpx solid #c4ccd9;
+  background: #fff;
+  color: #fff;
+  font-size: 24rpx;
+  line-height: 38rpx;
+  text-align: center;
+  flex: 0 0 auto;
+  box-sizing: border-box;
+}
+.done-btn.on {
+  background: #2fa66a;
+  border-color: #2fa66a;
+}
+.done-hover {
+  opacity: 0.6;
+}
+.task.done {
+  border-left-color: #2fa66a;
+}
+.v-title.v-done {
+  text-decoration: line-through;
+  color: #98a2b3;
+}
+.v-done-tag {
+  color: #2fa66a;
+  font-weight: 600;
+}
 .v-detail {
   color: #7a8499;
   font-size: 26rpx;

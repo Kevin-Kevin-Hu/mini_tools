@@ -50,10 +50,26 @@ Page({
     this.setData({ curUserId: uid, curUserName: u ? u.name : "", plans: [], loading: true });
     try {
       const plans = await api.dp.plans(uid);
-      this.setData({ plans, loading: false });
+      this.setData({ plans: this.decoratePlans(plans), loading: false });
     } catch (e) {
       this.setData({ loading: false, error: e.message });
     }
+  },
+
+  // 计划卡片装饰：日期旁显示星期几 + 「完成 x/y」统计。
+  // weekday 由 logic.weekdayStr 计算（UTC 构造，本地时区不会把「周五」算成「周六」）；
+  // 完成数直接从 plans.tasks（云端 jsonb 列）现算，无需额外接口。
+  decoratePlans(plans) {
+    return (plans || []).map((p) => {
+      const tasks = p.tasks || [];
+      const done = logic.doneCount(tasks);
+      return Object.assign({}, p, {
+        weekday: logic.weekdayStr(p.plan_date),
+        taskCount: tasks.length,
+        doneCount: done,
+        allDone: tasks.length > 0 && done === tasks.length,
+      });
+    });
   },
 
   onPickUser(e) {
@@ -167,7 +183,13 @@ Page({
   async refreshPlans() {
     if (this.data.curUserId == null) return;
     const plans = await api.dp.plans(this.data.curUserId);
-    this.setData({ plans });
+    this.setData({ plans: this.decoratePlans(plans) });
+  },
+
+  // 从编辑页返回时刷新：完成数可能变了（onLoad 只在首次进入触发，不刷新会显示旧统计）。
+  // 首屏时 onShow 紧接 onLoad 触发，彼时 bootstrap 尚未拿到 curUserId，天然跳过。
+  onShow() {
+    if (this.data.curUserId != null) this.refreshPlans();
   },
 
   gotoEditor(e) {

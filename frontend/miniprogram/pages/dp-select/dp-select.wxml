@@ -45,8 +45,14 @@
       bind:tap="gotoEditor"
     >
       <view class="plan-main">
-        <view class="plan-date">{{item.plan_date}}</view>
+        <view class="plan-date">{{item.plan_date}}<text wx:if="{{item.weekday}}" class="plan-week">{{item.weekday}}</text></view>
         <view class="plan-label" wx:if="{{item.day_label}}">{{item.day_label}}</view>
+        <!-- 当日任务完成统计：完成 x/y；全部完成绿色高亮 -->
+        <view class="plan-prog {{item.allDone ? 'full' : ''}}">
+          <text wx:if="{{item.taskCount === 0}}">还没有任务</text>
+          <text wx:elif="{{item.allDone}}">✓ 全部完成 {{item.doneCount}}/{{item.taskCount}}</text>
+          <text wx:else>完成 {{item.doneCount}}/{{item.taskCount}}</text>
+        </view>
       </view>
       <view class="plan-acts" catch:tap="noop">
         <view class="act" hover-class="act-hover" data-id="{{item.id}}" catch:tap="startCopy">复制</view>

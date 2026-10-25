@@ -207,6 +207,32 @@ input[type="time"] {
 }
 .dp-task-break { border-left-color: #f0a93d; background: #fffaf0; }
 .dp-task-meal { border-left-color: #e06b9c; background: #fff5fa; }
+.dp-task-done { border-left-color: #2fa66a; }
+
+/* 查看态完成勾选圈（任务行最左侧，点一下完成/取消） */
+.dp-done-btn {
+  flex: 0 0 auto;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid #c4ccd9;
+  background: #fff;
+  color: #fff;
+  font-size: 13px;
+  line-height: 1;
+  padding: 0;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.dp-done-btn.on {
+  background: #2fa66a;
+  border-color: #2fa66a;
+}
+.dp-done-btn:hover {
+  border-color: #2fa66a;
+}
 
 .dp-task-head {
   display: flex;
@@ -294,6 +320,15 @@ input[type="time"] {
   font-weight: 600;
   color: var(--ink);
   margin-top: 2px;
+}
+/* 已完成：标题删除线 + 置灰 */
+.dp-view-title.done {
+  text-decoration: line-through;
+  color: var(--muted);
+}
+.dp-done-tag {
+  color: #2fa66a;
+  font-weight: 600;
 }
 .dp-view-detail {
   font-size: 13px;

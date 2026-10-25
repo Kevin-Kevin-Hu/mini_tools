@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { todayStr } from "./dailyPlanLogic.js";
+import { todayStr, weekdayStr } from "./dailyPlanLogic.js";
 import {
   dpGetUsers,
   dpCreateUser,
@@ -140,7 +140,12 @@ export default function DailyPlan({ tool }) {
         userId={curUserId}
         planId={activePlanId}
         userName={curUser ? curUser.name : ""}
-        onBack={() => setActivePlanId(null)}
+        onBack={async () => {
+          // 编辑页已在返回前 flush 过保存；这里再拉一次，让计划卡片的
+          // 「完成 x/y」统计反映刚勾选/取消的结果（否则是旧数据）
+          await refreshPlans();
+          setActivePlanId(null);
+        }}
       />
     );
   }
@@ -242,9 +247,18 @@ export default function DailyPlan({ tool }) {
                 }}
               >
                 <div className="dp-plan-card-main">
-                  <div className="dp-plan-date">{p.plan_date}</div>
+                  <div className="dp-plan-date">
+                    {p.plan_date}
+                    <span className="dp-plan-week">{weekdayStr(p.plan_date)}</span>
+                  </div>
                   {p.day_label ? <div className="dp-plan-label">{p.day_label}</div> : null}
-                  <div className="dp-plan-sub">{p.task_count} 项任务</div>
+                  <div
+                    className={`dp-plan-sub${
+                      p.task_count > 0 && p.done_count === p.task_count ? " full" : ""
+                    }`}
+                  >
+                    {p.task_count > 0 ? `完成 ${p.done_count || 0}/${p.task_count}` : "还没有任务"}
+                  </div>
                 </div>
                 <div className="dp-plan-card-actions">
                   <button

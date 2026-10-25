@@ -70,6 +70,7 @@ export function usePlanEditor(userId, planId) {
         duration_min: Number(t.duration_min) || 0,
         rest_after_min: Number(t.rest_after_min) || 0,
         is_preset: t.is_preset ? 1 : 0,
+        done: t.done ? 1 : 0,
       }));
       await dpSaveTasks(planId, payload);
       setSaveState("saved");
@@ -257,9 +258,17 @@ export function usePlanEditor(userId, planId) {
     (index) => {
       mutateTasks((arr) => {
         const next = [...arr];
-        next.splice(index + 1, 0, { ...arr[index] });
+        // 复制出来的新任务重置为未完成：它是新的一项，不该继承「已完成」
+        next.splice(index + 1, 0, { ...arr[index], done: 0 });
         return next;
       });
+    },
+    [mutateTasks]
+  );
+  // 查看态点完成圈：勾选/取消完成
+  const toggleDone = useCallback(
+    (index) => {
+      mutateTasks((arr) => arr.map((t, i) => (i === index ? { ...t, done: t.done ? 0 : 1 } : t)));
     },
     [mutateTasks]
   );
@@ -328,6 +337,7 @@ export function usePlanEditor(userId, planId) {
     onDragEnd,
     insertTask,
     updateTask,
+    toggleDone,
     moveTask,
     duplicateTask,
     deleteTask,

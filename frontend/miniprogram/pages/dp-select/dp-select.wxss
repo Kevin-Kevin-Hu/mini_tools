@@ -110,10 +110,33 @@
   font-weight: 700;
   white-space: nowrap;
 }
+/* 日期后面的星期小标签，如「2026-10-25 周日」 */
+.plan-week {
+  display: inline-block;
+  font-size: 22rpx;
+  font-weight: 600;
+  line-height: 1.4;
+  color: #2f6fed;
+  background: #eef3fe;
+  border-radius: 8rpx;
+  padding: 2rpx 12rpx;
+  margin-left: 12rpx;
+  vertical-align: middle;
+}
 .plan-label {
   color: #2f6fed;
   font-size: 24rpx;
   margin-top: 4rpx;
+}
+/* 当日完成统计：「完成 2/5」，全部完成时绿色高亮 */
+.plan-prog {
+  color: #7a8499;
+  font-size: 22rpx;
+  margin-top: 4rpx;
+}
+.plan-prog.full {
+  color: #2fa66a;
+  font-weight: 700;
 }
 .plan-acts {
   display: flex;

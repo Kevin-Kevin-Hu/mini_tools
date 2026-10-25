@@ -209,12 +209,14 @@ const dp = {
     const { data, error } = await cloud.database.from("plans").select("*").eq("id", id).single();
     if (error) throw fail(error);
     const src = data;
+    // 复制任务时重置 done：新的一天从「全部未完成」开始
+    const tasks = (src.tasks || []).map((t) => ({ ...t, done: 0 }));
     const { error: e2 } = await cloud.database.from("plans").insert({
       child_user_id: src.child_user_id,
       plan_date: planDate,
       first_start: src.first_start,
       day_label: src.day_label || "",
-      tasks: src.tasks || [],
+      tasks,
     });
     if (e2) throw fail(e2);
   },

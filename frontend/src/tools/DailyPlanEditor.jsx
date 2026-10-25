@@ -28,6 +28,7 @@ export default function DailyPlanEditor({ userId, planId, userName, onBack }) {
     onDragEnd,
     insertTask,
     updateTask,
+    toggleDone,
     moveTask,
     duplicateTask,
     deleteTask,
@@ -127,12 +128,22 @@ export default function DailyPlanEditor({ userId, planId, userName, onBack }) {
             <div
               className={`dp-task dp-task-${t.kind}${dragIndex === i ? " dp-dragging" : ""}${
                 viewMode === "view" ? " dp-task-view" : ""
-              }`}
+              }${t.done ? " dp-task-done" : ""}`}
               ref={(el) => {
                 cardRefs.current[i] = el;
               }}
             >
               <div className="dp-task-head">
+                {viewMode === "view" && (
+                  <button
+                    type="button"
+                    className={`dp-done-btn${t.done ? " on" : ""}`}
+                    title={t.done ? "已完成，点击取消" : "点击标记完成"}
+                    onClick={() => toggleDone(i)}
+                  >
+                    {t.done ? "✓" : ""}
+                  </button>
+                )}
                 <span
                   className="dp-grip"
                   title="拖动调整顺序"
@@ -196,13 +207,16 @@ export default function DailyPlanEditor({ userId, planId, userName, onBack }) {
 
               {viewMode === "view" ? (
                 <>
-                  <div className="dp-view-title">{t.title || "（未命名任务）"}</div>
+                  <div className={`dp-view-title${t.done ? " done" : ""}`}>
+                    {t.title || "（未命名任务）"}
+                  </div>
                   {t.detail ? <div className="dp-view-detail">{t.detail}</div> : null}
                   <div className="dp-view-meta">
                     <span>时长 {fmtDuration(t.duration_min)}</span>
                     {!t._isLast && Number(t.rest_after_min) > 0 && (
                       <span>· 休息 {Number(t.rest_after_min)} 分钟</span>
                     )}
+                    {t.done ? <span className="dp-done-tag">· 已完成</span> : null}
                   </div>
                 </>
               ) : (

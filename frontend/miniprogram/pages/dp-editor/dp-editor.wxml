@@ -39,9 +39,17 @@
     wx:for="{{view}}"
     wx:key="index"
     id="task-{{index}}"
-    class="task {{'k-' + item.kind}} {{viewMode === 'view' ? 'viewing' : ''}} {{dragging === index ? 'dragging' : ''}}"
+    class="task {{'k-' + item.kind}} {{viewMode === 'view' ? 'viewing' : ''}} {{item.done ? 'done' : ''}} {{dragging === index ? 'dragging' : ''}}"
   >
     <view class="row">
+      <!-- 完成勾选圈（仅查看态）：点一下完成/取消，完成的任务标题加删除线 -->
+      <view
+        wx:if="{{viewMode === 'view'}}"
+        class="done-btn {{item.done ? 'on' : ''}}"
+        data-i="{{index}}"
+        hover-class="done-hover"
+        catch:tap="toggleDone"
+      >{{item.done ? '✓' : ''}}</view>
       <view
         class="grip"
         data-i="{{index}}"
@@ -61,10 +69,10 @@
 
     <!-- 查看态 -->
     <block wx:if="{{viewMode === 'view'}}">
-      <view class="v-title">{{item.title || '（未命名任务）'}}</view>
+      <view class="v-title {{item.done ? 'v-done' : ''}}">{{item.title || '（未命名任务）'}}</view>
       <view class="v-detail" wx:if="{{item.detail}}">{{item.detail}}</view>
       <view class="v-meta">
-        时长 {{item.durText}}<text wx:if="{{item.restText}}"> · 休息 {{item.restText}} 分钟</text>
+        时长 {{item.durText}}<text wx:if="{{item.restText}}"> · 休息 {{item.restText}} 分钟</text><text wx:if="{{item.done}}" class="v-done-tag"> · 已完成</text>
       </view>
     </block>
 
@@ -104,6 +112,7 @@
       <view class="row task-acts">
         <view class="act" hover-class="act-hover" data-i="{{index}}" catch:tap="dupTask">复制</view>
         <view class="act danger" hover-class="act-hover" data-i="{{index}}" catch:tap="delTask">删除</view>
+        <view class="act" hover-class="act-hover" data-i="{{index}}" catch:tap="insertBelow">插入</view>
       </view>
     </block>
   </view>

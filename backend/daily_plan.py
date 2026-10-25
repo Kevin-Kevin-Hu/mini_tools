@@ -3,8 +3,13 @@
 数据模型（全部建在 mini_tools.db，复用 db.get_conn）：
   dp_users(id, name, created_at)
   dp_plans(id, user_id, plan_date, day_label, first_start, created_at, updated_at)
-  dp_tasks(id, plan_id, position, kind, title, detail, duration_min, rest_after_min, is_preset, created_at)
+  dp_tasks(id, plan_id, position, kind, title, detail, duration_min, rest_after_min, is_preset, done, created_at)
   dp_common_tasks(id, user_id, title, detail, duration_min, kind, created_at)
+
+完成状态（done）：
+  - 0=未完成（默认）、1=已完成；查看列表里点一下即可勾选/取消
+  - 「复制计划」不带完成状态：新的一天从零开始，避免照抄出一堆已勾选的任务
+  - 小程序云端（Postgres）的 tasks 是 plans 表里的 jsonb 列，done 只是任务对象的新键，无需改表
 
 排程规则（前端计算，后端只存储）：
   - 第一个任务由用户手动设定开始时间（plan.first_start）
@@ -56,10 +61,16 @@ def init_dp_db():
                 duration_min INTEGER DEFAULT 30,
                 rest_after_min INTEGER DEFAULT 20,
                 is_preset INTEGER DEFAULT 0,
+                done INTEGER NOT NULL DEFAULT 0,
                 created_at TEXT DEFAULT (datetime('now'))
             )
             """
         )
+        # 存量库迁移：CREATE TABLE IF NOT EXISTS 不会给旧表补列，手动 ALTER
+        # （SQLite 允许 ADD COLUMN 带 NOT NULL，前提是有字面 DEFAULT）
+        dp_task_cols = [r["name"] for r in conn.execute("PRAGMA table_info(dp_tasks)").fetchall()]
+        if "done" not in dp_task_cols:
+            conn.execute("ALTER TABLE dp_tasks ADD COLUMN done INTEGER NOT NULL DEFAULT 0")
         conn.execute(
             """
             CREATE TABLE IF NOT EXISTS dp_common_tasks (
@@ -103,6 +114,7 @@ class TaskItem(BaseModel):
     duration_min: int = 30
     rest_after_min: int = 20
     is_preset: int = 0
+    done: int = 0  # 0=未完成 / 1=已完成
 
 
 class TasksBulk(BaseModel):
@@ -169,7 +181,8 @@ def list_plans(user_id: int):
         rows = conn.execute(
             """
             SELECT p.id, p.user_id, p.plan_date, p.day_label, p.first_start,
-                   (SELECT COUNT(*) FROM dp_tasks t WHERE t.plan_id=p.id) AS task_count
+                   (SELECT COUNT(*) FROM dp_tasks t WHERE t.plan_id=p.id) AS task_count,
+                   (SELECT COUNT(*) FROM dp_tasks t WHERE t.plan_id=p.id AND t.done=1) AS done_count
             FROM dp_plans p
             WHERE p.user_id=?
             ORDER BY p.plan_date DESC, p.id DESC
@@ -207,7 +220,7 @@ def get_plan(pid: int):
             raise HTTPException(status_code=404, detail="计划不存在")
         tasks = conn.execute(
             "SELECT id, plan_id, position, kind, title, detail, duration_min, "
-            "rest_after_min, is_preset FROM dp_tasks WHERE plan_id=? ORDER BY position",
+            "rest_after_min, is_preset, done FROM dp_tasks WHERE plan_id=? ORDER BY position",
             (pid,),
         ).fetchall()
         return {"plan": dict(row), "tasks": [dict(t) for t in tasks]}
@@ -259,6 +272,7 @@ def copy_plan(pid: int, p: PlanCopy):
             (pid,),
         ).fetchall()
         for i, t in enumerate(tasks):
+            # 注意：不复制 done——新的一天从「全部未完成」开始
             conn.execute(
                 "INSERT INTO dp_tasks (plan_id, position, kind, title, detail, "
                 "duration_min, rest_after_min, is_preset) VALUES (?,?,?,?,?,?,?,?)",
@@ -287,7 +301,7 @@ def save_tasks(pid: int, p: TasksBulk):
         for i, t in enumerate(p.tasks):
             conn.execute(
                 "INSERT INTO dp_tasks (plan_id, position, kind, title, detail, "
-                "duration_min, rest_after_min, is_preset) VALUES (?,?,?,?,?,?,?,?)",
+                "duration_min, rest_after_min, is_preset, done) VALUES (?,?,?,?,?,?,?,?,?)",
                 (
                     pid,
                     i,
@@ -297,6 +311,7 @@ def save_tasks(pid: int, p: TasksBulk):
                     t.duration_min,
                     t.rest_after_min,
                     t.is_preset,
+                    1 if t.done else 0,
                 ),
             )
         return {"ok": True, "count": len(p.tasks)}

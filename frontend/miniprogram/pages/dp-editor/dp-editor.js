@@ -3,6 +3,7 @@
 const api = require("../../utils/api");
 const logic = require("../../utils/dailyPlanLogic");
 const { createTaskScroller } = require("../../utils/scrollHelper");
+const printStrip = require("../../utils/printStrip");
 const { KIND_LABEL, PRESETS, blankTask, fromCommon } = logic;
 
 function decorate(scheduled) {
@@ -25,8 +26,6 @@ function markFirstLast(view) {
     isLastOne: i === view.length - 1,
   }));
 }
-
-const WEEK = ["日", "一", "二", "三", "四", "五", "六"];
 
 Page({
   data: {
@@ -164,6 +163,13 @@ Page({
   },
 
   // ---------- 任务编辑 ----------
+  // 查看态点完成圈：勾选/取消完成（done 0/1），立即重排 + 防抖保存
+  toggleDone(e) {
+    const i = Number(e.currentTarget.dataset.i);
+    if (!(i >= 0 && i < this.data.tasks.length)) return;
+    const t = this.data.tasks[i];
+    this.updateTask(i, { done: t.done ? 0 : 1 });
+  },
   updateTask(index, patch) {
     this.setData({
       tasks: this.data.tasks.map((t, i) => (i === index ? Object.assign({}, t, patch) : t)),
@@ -191,6 +197,7 @@ Page({
       duration_min: Number(t.duration_min) || 0,
       rest_after_min: Number(t.rest_after_min) || 0,
       is_preset: t.is_preset || 0,
+      done: t.done ? 1 : 0,
     }));
   },
   async flushAll() {
@@ -307,8 +314,23 @@ Page({
   async dupTask(e) {
     const i = Number(e.currentTarget.dataset.i);
     const arr = [...this.data.tasks];
-    arr.splice(i + 1, 0, Object.assign({}, arr[i]));
+    // 复制出来的新任务重置为未完成：它是新的一项，不该继承「已完成」
+    arr.splice(i + 1, 0, Object.assign({}, arr[i], { done: 0 }));
     this.setData({ tasks: arr });
+    this.resched();
+    this.scheduleSave();
+  },
+  // 在当前任务下方插入一个空白自定义任务（区别于 addCustom 的追加到末尾）
+  insertBelow(e) {
+    const i = Number(e.currentTarget.dataset.i);
+    // 越界保护。注意不能写成 i < 0 || i >= len：Number("abc") 得到 NaN，
+    // 而 NaN < 0 与 NaN >= len **都是 false**，守卫会失效、splice(NaN) 还会插到最前面。
+    // 用区间整体取反，NaN 落在区间外即被拦住。
+    if (!(i >= 0 && i < this.data.tasks.length)) return;
+    const arr = [...this.data.tasks];
+    arr.splice(i + 1, 0, blankTask());
+    // 保持编辑态：新任务卡片直接出现在当前任务下方，紧跟可视区，无需额外滚动
+    this.setData({ tasks: arr, viewMode: "edit" });
     this.resched();
     this.scheduleSave();
   },
@@ -351,131 +373,9 @@ Page({
     this.setData({ common: this.data.common.filter((_, x) => x !== i) });
   },
 
-  // ---------- 打印清单（Canvas 生成纸条图片） ----------
-  async genPrint() {
-    const view = this.data.view;
-    if (!view.length) return wx.showToast({ title: "没有任务可打印", icon: "none" });
-    wx.showLoading({ title: "生成中…" });
-    try {
-      const query = wx.createSelectorQuery().in(this);
-      query
-        .select("#printCanvas")
-        .fields({ node: true, size: true })
-        .exec(async (res) => {
-          const canvas = res[0].node;
-          const dpr = wx.getWindowInfo().pixelRatio || 2;
-          const W = 375;
-          const rowH = 52;
-          const H = 130 + view.length * rowH + 90;
-          canvas.width = W * dpr;
-          canvas.height = H * dpr;
-          const ctx = canvas.getContext("2d");
-          ctx.scale(dpr, dpr);
-          this.drawStrip(ctx, W, H, rowH);
-          wx.canvasToTempFilePath({
-            canvas,
-            success: (r) => {
-              wx.hideLoading();
-              wx.previewImage({ urls: [r.tempFilePath] });
-            },
-            fail: () => {
-              wx.hideLoading();
-              wx.showToast({ title: "生成失败", icon: "none" });
-            },
-          });
-        });
-    } catch (e) {
-      wx.hideLoading();
-      wx.showToast({ title: (e && e.message) || "生成失败", icon: "none" });
-    }
-  },
-
-  drawStrip(ctx, W, H, rowH) {
-    const plan = this.data.plan;
-    const view = this.data.view;
-    const name = this.data.userName;
-    ctx.fillStyle = "#ffffff";
-    ctx.fillRect(0, 0, W, H);
-    ctx.fillStyle = "#1a2233";
-    ctx.textBaseline = "middle";
-
-    // 标题
-    ctx.font = "bold 19px sans-serif";
-    ctx.textAlign = "center";
-    ctx.fillText(`${name ? name + "的" : ""}${plan.plan_date}计划`, W / 2, 32);
-    // 副标题
-    let week = "";
-    try {
-      const p = plan.plan_date.split("-");
-      week = WEEK[new Date(+p[0], +p[1] - 1, +p[2]).getDay()];
-    } catch (_e) {
-      week = "";
-    }
-    ctx.font = "11px sans-serif";
-    ctx.fillStyle = "#44506a";
-    ctx.fillText(
-      `${week ? "星期" + week + " · " : ""}${plan.first_start || "07:00"} 开始 · ${view.length} 项 · ${this.data.endText} 结束`,
-      W / 2,
-      56
-    );
-    // 双线
-    ctx.strokeStyle = "#1a2233";
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    ctx.moveTo(14, 74);
-    ctx.lineTo(W - 14, 74);
-    ctx.stroke();
-
-    // 表头
-    const y0 = 92;
-    const colX = 14;
-    const colW = W - 28;
-    const tW = 118;
-    ctx.font = "bold 12px sans-serif";
-    ctx.fillStyle = "#eef1f6";
-    ctx.fillRect(colX, y0, colW, 30);
-    ctx.fillStyle = "#1a2233";
-    ctx.textAlign = "left";
-    ctx.fillText("时间", colX + 10, y0 + 15);
-    ctx.fillText("任务", colX + tW + 10, y0 + 15);
-
-    // 行
-    ctx.font = "13px sans-serif";
-    view.forEach((t, i) => {
-      const y = y0 + 30 + i * rowH;
-      ctx.strokeStyle = "#2a3550";
-      ctx.lineWidth = 0.8;
-      ctx.strokeRect(colX, y, colW, rowH);
-      ctx.strokeRect(colX, y, tW, rowH); // 时间列分隔
-      ctx.fillStyle = "#1a2233";
-      ctx.font = "12px sans-serif";
-      ctx.fillText(t.timeText, colX + 10, y + rowH / 2);
-      ctx.font = "bold 13px sans-serif";
-      ctx.fillText(t.title || "（未命名任务）", colX + tW + 10, y + rowH / 2);
-      if (t.kindLabel && t.kindLabel !== "任务") {
-        ctx.font = "10px sans-serif";
-        ctx.fillStyle = "#44506a";
-        ctx.fillText(`［${t.kindLabel}］`, colX + tW + 10 + ctx.measureText(t.title || "").width * 2.1 + 14, y + rowH / 2);
-        ctx.fillStyle = "#1a2233";
-        ctx.font = "bold 13px sans-serif";
-      }
-    });
-
-    // 页脚
-    const fy = y0 + 30 + view.length * rowH + 34;
-    ctx.font = "11px sans-serif";
-    ctx.fillStyle = "#44506a";
-    ctx.textAlign = "left";
-    ctx.fillText(`打印：${logic.todayStr()}`, colX, fy);
-    ctx.textAlign = "right";
-    ctx.fillText("家长签字：＿＿＿＿＿＿", W - colX, fy);
-
-    // 裁切参考虚线框
-    ctx.setLineDash([4, 4]);
-    ctx.strokeStyle = "#999999";
-    ctx.lineWidth = 0.8;
-    ctx.strokeRect(4, 4, W - 8, H - 8);
-    ctx.setLineDash([]);
+  // ---------- 打印清单（Canvas 生成纸条图片，实现见 utils/printStrip.js） ----------
+  genPrint() {
+    printStrip.genPrint(this);
   },
 
   onUnload() {

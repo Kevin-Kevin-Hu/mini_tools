@@ -29,6 +29,7 @@ export function blankTask() {
     duration_min: 45,
     rest_after_min: DEFAULT_REST,
     is_preset: 0,
+    done: 0,
   };
 }
 
@@ -41,7 +42,13 @@ export function fromCommon(c) {
     duration_min: c.duration_min || 30,
     rest_after_min: c.kind === "task" ? DEFAULT_REST : 0,
     is_preset: 0,
+    done: 0,
   };
+}
+
+// 统计已完成任务数（done 为真即算；缺省/脏数据按未完成处理）
+export function doneCount(tasks) {
+  return (tasks || []).filter((t) => t && t.done).length;
 }
 
 // "HH:MM" -> 当天分钟数；非法返回 0
@@ -110,6 +117,26 @@ export function todayStr() {
 // 日期加减：入参/出参均为 YYYY-MM-DD，n 可为负数。
 // 走 UTC 构造 + UTC 读回，避开夏令时/时区把「加一天」算错。
 // 与小程序版 utils/dailyPlanLogic.js 的 addDays 一一对应，改请两边同步。
+// 由 YYYY-MM-DD 求星期几，返回「周日」「周一」…；非法日期返回 ""。
+// 同样走 UTC 构造 + getUTCDay，避免本地时区把星期算错（与 addDays 一致）。
+// 与小程序版 utils/dailyPlanLogic.js 的 weekdayStr 一一对应，改请两边同步。
+export function weekdayStr(dateStr) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(dateStr || "").trim());
+  if (!m) return "";
+  const y = Number(m[1]);
+  const mo = Number(m[2]) - 1;
+  const day = Number(m[3]);
+  const d = new Date(Date.UTC(y, mo, day));
+  if (Number.isNaN(d.getTime())) return "";
+  // 回读校验：JS 会把 2026-13-01 / 2026-02-30 这类非法日期「滚」成合法日期，
+  // 这里要求毫厘不差，避免把越界值显示成一个错误的星期
+  if (d.getUTCFullYear() !== y || d.getUTCMonth() !== mo || d.getUTCDate() !== day) {
+    return "";
+  }
+  const names = ["日", "一", "二", "三", "四", "五", "六"];
+  return `周${names[d.getUTCDay()]}`;
+}
+
 export function addDays(dateStr, n) {
   const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(dateStr || "").trim());
   let base;

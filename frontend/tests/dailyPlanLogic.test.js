@@ -9,6 +9,8 @@ import {
   fmtRange,
   computeSchedule,
   fmtDuration,
+  weekdayStr,
+  doneCount,
   addDays,
 } from "../src/tools/dailyPlanLogic.js";
 
@@ -82,10 +84,20 @@ test("blankTask 与 fromCommon 默认值正确", () => {
   assert.equal(b.duration_min, 45);
   assert.equal(b.rest_after_min, 20);
   assert.equal(b.is_preset, 0);
+  assert.equal(b.done, 0); // 新任务默认未完成
   const c = fromCommon({ title: "背单词", detail: "list 1", duration_min: 25, kind: "task" });
   assert.equal(c.title, "背单词");
   assert.equal(c.is_preset, 0);
   assert.equal(c.rest_after_min, 20);
+  assert.equal(c.done, 0);
+});
+
+test("doneCount 统计已完成数，容错脏数据", () => {
+  const tasks = [{ done: 1 }, { done: 0 }, {}, { done: true }, { done: "1" }];
+  assert.equal(doneCount(tasks), 3); // 缺省/0 不算，真值都算
+  assert.equal(doneCount([]), 0);
+  assert.equal(doneCount(undefined), 0);
+  assert.equal(doneCount(null), 0);
 });
 
 test("fmtDuration 格式化", () => {
@@ -93,6 +105,22 @@ test("fmtDuration 格式化", () => {
   assert.equal(fmtDuration(60), "1 小时");
   assert.equal(fmtDuration(90), "1 小时 30 分钟");
   assert.equal(fmtDuration(0), "0 分钟");
+});
+
+// 计划清单里日期旁边要显示星期几：跨周/闰年/年底都要准
+test("weekdayStr 由日期求星期", () => {
+  assert.equal(weekdayStr("2026-10-25"), "周日");
+  assert.equal(weekdayStr("2026-10-26"), "周一");
+  assert.equal(weekdayStr("2026-01-01"), "周四");
+  assert.equal(weekdayStr("2024-02-29"), "周四"); // 闰日
+  assert.equal(weekdayStr("2025-12-31"), "周三"); // 跨年边界
+});
+
+test("weekdayStr 入参非法时返回空串，不抛错", () => {
+  assert.equal(weekdayStr(""), "");
+  assert.equal(weekdayStr("bad-date"), "");
+  assert.equal(weekdayStr(undefined), "");
+  assert.equal(weekdayStr("2026-13-01"), ""); // 月份超范围 → Date 非法 → 空串
 });
 
 // 复制计划时的目标日期 = 源计划日期 +1 天，必须跨月/跨年/闰年都要准
