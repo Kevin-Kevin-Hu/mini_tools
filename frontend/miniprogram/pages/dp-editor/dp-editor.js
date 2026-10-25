@@ -49,6 +49,11 @@ Page({
     // 拖动排序
     dragging: -1,
     focusIndex: -1,
+    // 打印设置面板
+    showPrint: false,
+    printOrient: "landscape",
+    previewW: 0,
+    previewH: 0,
   },
 
   onLoad(query) {
@@ -242,9 +247,10 @@ Page({
   },
   noRest(e) {
     // 事件由 stepper 组件触发：index 从 e.detail 取（currentTarget 是组件节点，读不到 data-i）
-    const i = e && e.detail && e.detail.index !== undefined
-      ? Number(e.detail.index)
-      : Number(e.currentTarget.dataset.i);
+    const i =
+      e && e.detail && e.detail.index !== undefined
+        ? Number(e.detail.index)
+        : Number(e.currentTarget.dataset.i);
     this.updateTask(i, { rest_after_min: 0 });
   },
 
@@ -273,8 +279,7 @@ Page({
     wx.vibrateShort({ type: "light" });
   },
   captureRects() {
-    wx
-      .createSelectorQuery()
+    wx.createSelectorQuery()
       .in(this)
       .selectAll(".task")
       .boundingClientRect((rects) => {
@@ -366,16 +371,59 @@ Page({
     const i = Number(e.currentTarget.dataset.i);
     const c = this.data.common[i];
     const ok = await new Promise((r) =>
-      wx.showModal({ title: "确认", content: `删除常用任务「${c.title}」？`, success: (x) => r(!!x.confirm) })
+      wx.showModal({
+        title: "确认",
+        content: `删除常用任务「${c.title}」？`,
+        success: (x) => r(!!x.confirm),
+      })
     );
     if (!ok) return;
     await api.dp.deleteCommon(c.id);
     this.setData({ common: this.data.common.filter((_, x) => x !== i) });
   },
 
-  // ---------- 打印清单（Canvas 生成纸条图片，实现见 utils/printStrip.js） ----------
-  genPrint() {
-    printStrip.genPrint(this);
+  // ---------- 打印清单（Canvas → 图片/PDF，方向可设，实现见 utils/printStrip.js） ----------
+  openPrint() {
+    this.setData({ showPrint: true });
+    // 面板打开后画一次清单预览（预览=纸条本身，与纸张横竖无关，不随方向重绘）
+    setTimeout(() => this.renderPrintPreview(), 30);
+  },
+  closePrint() {
+    this.setData({ showPrint: false });
+  },
+  setOrient(e) {
+    this.setData({ printOrient: e.currentTarget.dataset.o });
+  },
+  // 打印面板顶部的任务清单预览图（画进面板里的小 canvas）
+  renderPrintPreview() {
+    if (!this.data.showPrint || !this.data.view.length) return;
+    wx.createSelectorQuery()
+      .in(this)
+      .select("#printPreviewCanvas")
+      .fields({ node: true, size: true })
+      .exec((res) => {
+        const canvas = res[0] && res[0].node;
+        if (!canvas) return;
+        const strip = printStrip.drawPreview(this, canvas, "landscape");
+        if (!strip) return;
+        // 显示尺寸必须走 setData 数据绑定：node.style 在 canvas 2d 上不生效，
+        // 位图会被默认 300×150 拉成宽扁（竖版纸条变形）
+        const scale = Math.min(1, 140 / strip.w);
+        this.setData({
+          previewW: Math.round(strip.w * scale),
+          previewH: Math.round(strip.h * scale),
+        });
+      });
+  },
+  onPrintSave() {
+    const orient = this.data.printOrient;
+    this.setData({ showPrint: false });
+    printStrip.saveImage(this, orient);
+  },
+  onPrintPdf() {
+    const orient = this.data.printOrient;
+    this.setData({ showPrint: false });
+    printStrip.exportPdf(this, orient);
   },
 
   onUnload() {

@@ -11,7 +11,7 @@
         <view class="seg-btn {{viewMode === 'view' ? 'on' : ''}}" bind:tap="setView">查看</view>
         <view class="seg-btn {{viewMode === 'edit' ? 'on' : ''}}" bind:tap="setEdit">编辑</view>
       </view>
-      <view class="printbtn" bind:tap="genPrint">🖨 清单</view>
+      <view class="printbtn" bind:tap="openPrint">🖨 清单</view>
     </view>
     <view wx:if="{{saveState === 'error'}}" class="save error">保存失败，请检查网络后重试</view>
   </view>
@@ -152,9 +152,35 @@
     </view>
   </view>
 
-  <view class="hint pad-h">提示：🖨 清单会生成纸条样式图片，长按可保存/转发，打印时选择该图片即可。</view>
+  <view class="hint pad-h">提示：🖨 清单按竖版小纸条打印——A4 横向纸上靠左放一张，可存图片或导出 PDF。</view>
 
   <time-picker visible="{{showTimePicker}}" value="{{plan.first_start || '07:00'}}" bind:change="onFirstTime" bind:cancel="onFirstTimeCancel" />
+
+  <!-- 打印设置面板：预览图 + 纸张方向 + 输出方式 -->
+  <view class="mask" wx:if="{{showPrint}}" bind:tap="closePrint">
+    <view class="print-panel" catch:tap="noop">
+      <view class="pp-title">打印清单</view>
+      <view class="pp-preview">
+        <canvas
+          type="2d"
+          id="printPreviewCanvas"
+          class="pp-preview-canvas"
+          style="width:{{previewW}}px;height:{{previewH}}px;"
+        ></canvas>
+      </view>
+      <view class="pp-lbl">纸张方向</view>
+      <view class="pp-obtns">
+        <view class="pp-obtn {{printOrient === 'landscape' ? 'on' : ''}}" data-o="landscape" catch:tap="setOrient">横向 A4</view>
+        <view class="pp-obtn {{printOrient === 'portrait' ? 'on' : ''}}" data-o="portrait" catch:tap="setOrient">纵向 A4</view>
+      </view>
+      <view class="pp-lbl">输出方式</view>
+      <view class="pp-btns">
+        <view class="pp-btn" hover-class="pp-btn-hover" catch:tap="onPrintSave">保存图片</view>
+        <view class="pp-btn primary" hover-class="pp-btn-hover" catch:tap="onPrintPdf">导出 PDF 打印</view>
+      </view>
+      <view class="pp-note">保存图片 = 一张竖版小纸条本身；导出 PDF = A4 横向纸上靠左放这张小纸条，打印后沿虚线裁下即用</view>
+    </view>
+  </view>
 
   <!-- 打印清单离屏画布 -->
   <canvas type="2d" id="printCanvas" class="print-canvas"></canvas>

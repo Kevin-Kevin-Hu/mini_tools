@@ -1,6 +1,10 @@
-/* ---------- 打印纸条（v3 窄条版式） ----------
+/* ---------- 打印纸条（竖版小纸条，A4 横向纸上靠左放一张） ----------
    屏幕上完全隐藏；window.print() 时隐藏整个应用，
-   仅输出 body 下 Portal 挂载的 80mm 窄条。 */
+   仅输出 body 下 Portal 挂载的内容。
+   方向默认横向：任务清单是一张竖版小纸条，A4 横着放、纸条靠左，
+   沿虚线裁下即用，不为一张小纸条铺满整页；
+   用户仍可在浏览器打印对话框里自己改回纵向（布局自适应宽度）。
+   版式与小程序 printStrip 对齐：标题居中、双线、两列表格、完成态 √ + 删除线。 */
 
 .dp-print-strip {
   display: none;
@@ -25,7 +29,7 @@
 
 @media print {
   @page {
-    size: A4 portrait;
+    size: A4 landscape; /* 横向 A4：竖版小纸条靠左放（与小程序默认方向一致） */
     margin: 0; /* 页边距为 0：浏览器自动去掉页眉页脚（网址/日期），纸条自己留白 */
   }
 
@@ -42,9 +46,22 @@
 
   .dp-print-strip {
     display: block;
-    width: 80mm;
+    width: 88mm; /* 竖版小纸条：不铺满，A4 横纸上靠左放一条 */
+    margin: 18mm 0 0 10mm; /* 靠左，不居中 */
+    padding: 5mm 4mm;
+    box-sizing: border-box;
     border: 1px dashed #999; /* 裁切参考线 */
-    padding: 8mm 6mm;
+    position: relative;
+  }
+  .dp-print-strip::after {
+    content: "— 沿虚线裁切 —";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -6mm;
+    text-align: center;
+    font-size: 10px;
+    color: #8a93a6;
   }
 
   .dp-print-strip tr {
@@ -54,44 +71,44 @@
   .s-head {
     text-align: center;
     border-bottom: 2px solid #1a2233;
-    padding-bottom: 10px;
+    padding-bottom: 6px;
   }
   .s-title {
-    font-size: 17px;
+    font-size: 15px;
     font-weight: 700;
     letter-spacing: 1px;
   }
   .s-sub {
-    margin-top: 5px;
-    font-size: 10.5px;
+    margin-top: 3px;
+    font-size: 9.5px;
     color: #44506a;
   }
 
   .s-list {
     width: 100%;
     border-collapse: collapse;
-    margin-top: 8px;
+    margin-top: 5px;
   }
   .s-list th,
   .s-list td {
     border: 1px solid #2a3550;
-    padding: 7px 6px;
+    padding: 4px 7px;
     text-align: left;
     vertical-align: middle;
-    font-size: 12px;
+    font-size: 11px;
   }
   .s-list th {
     background: #eef1f6;
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 700;
     letter-spacing: 1px;
-    padding: 6px;
+    padding: 3px 7px;
   }
   .s-list td.s-time {
     white-space: nowrap;
     font-variant-numeric: tabular-nums;
-    width: 92px;
-    font-size: 11px;
+    width: 84px;
+    font-size: 10px;
   }
   .s-list td.s-name {
     font-weight: 700;
@@ -101,12 +118,12 @@
     display: block;
     font-weight: 400;
     color: #44506a;
-    font-size: 10.5px;
-    margin-top: 2px;
+    font-size: 9.5px;
+    margin-top: 1px;
   }
   .s-tag {
     display: inline-block;
-    font-size: 9.5px;
+    font-size: 9px;
     border: 1px solid #2a3550;
     border-radius: 2px;
     padding: 0 3px;
@@ -115,16 +132,26 @@
     vertical-align: 1px;
   }
 
+  /* 完成态：绿色 √ + 置灰 + 删除线（与小程序纸条一致） */
+  .s-done-mark {
+    color: #1f9d55;
+    font-weight: 700;
+  }
+  .s-list .s-done {
+    color: #9aa3b5;
+    text-decoration: line-through;
+  }
+
   .s-foot {
-    margin-top: 14px;
+    margin-top: 6px;
     border-top: 1px solid #2a3550;
-    padding-top: 10px;
-    font-size: 11px;
+    padding-top: 5px;
+    font-size: 9.5px;
     color: #44506a;
   }
   .s-sign {
     display: inline-block;
     border-bottom: 1px solid #2a3550;
-    min-width: 96px;
+    min-width: 84px;
   }
 }
