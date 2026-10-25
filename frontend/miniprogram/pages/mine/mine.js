@@ -1,6 +1,7 @@
 // 我的：微信登录状态 + 家庭（新建/加入/家庭码复制/成员/退出）+ 昵称
 const api = require("../../utils/api");
 const auth = require("../../utils/auth");
+const { checkNickname } = require("../../utils/nickname");
 
 Page({
   data: {
@@ -38,13 +39,17 @@ Page({
   async createFamily() {
     const name = await this.ask("新建家庭", "输入家庭名称，如：琪琪家");
     if (!name) return;
-    this.run(() => api.mp.createFamily(name));
+    const nickname = await this.askNickname();
+    if (!nickname) return; // 昵称不合法已提示，中止创建
+    this.run(() => api.mp.createFamily(name, nickname));
   },
 
   async joinFamily() {
     const code = await this.ask("加入家庭", "输入 6 位家庭码");
     if (!code) return;
-    this.run(() => api.mp.joinFamily(code.toUpperCase()));
+    const nickname = await this.askNickname();
+    if (!nickname) return; // 昵称不合法已提示，中止加入
+    this.run(() => api.mp.joinFamily(code.toUpperCase(), nickname));
   },
 
   async renameFamily() {
@@ -71,6 +76,18 @@ Page({
     const nick = await this.ask("修改我的昵称", "输入昵称", cur);
     if (!nick) return;
     this.run(() => api.mp.updateMe(nick));
+  },
+
+  // 创建/加入家庭前的昵称输入。返回规范化后的昵称；不合法时 toast 原因并返回 null。
+  async askNickname() {
+    const nick = await this.ask("设置昵称", "家人怎么称呼你？如：爸爸、妈妈");
+    if (!nick) return null;
+    try {
+      return checkNickname(nick);
+    } catch (e) {
+      wx.showToast({ title: e.message, icon: "none" });
+      return null;
+    }
   },
 
   // 统一执行 + 刷新 + 错误提示

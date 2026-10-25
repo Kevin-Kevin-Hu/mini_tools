@@ -1,6 +1,7 @@
 // 业务接口：全部走云 SDK（auth 自动带会话，RLS 按 owner_id 隔离）。
 // 不再需要手动 token；请求打到云固定网关 mp-api.app.workbuddy.host，规避网页域名拦截。
 const { cloud } = require("./cloud");
+const { checkNickname } = require("./nickname");
 
 function fail(error) {
   if (!error) return null;
@@ -30,16 +31,12 @@ function genFamilyCode() {
   return s;
 }
 
-// 读取当前用户的昵称（用于写入家庭成员列表）
-async function currentNickname() {
-  const { data } = await cloud.database.from("profiles").select("nickname").maybeSingle();
-  return (data && data.nickname) || "";
-}
-
 // ---------- 小程序用户域：家庭 + 昵称 ----------
 const mp = {
-  // 新建家庭：生成并写入 families（唯一家庭码），再把自身 profile 关联到该家庭
-  async createFamily(name) {
+  // 新建家庭：生成并写入 families（唯一家庭码），再把自身 profile 关联到该家庭。
+  // nickname 必填：家庭内要靠昵称区分家人（见 utils/nickname.js）。
+  async createFamily(name, nickname) {
+    checkNickname(nickname);
     for (let attempt = 0; attempt < 6; attempt++) {
       const code = genFamilyCode();
       const { data, error } = await cloud.database
@@ -47,8 +44,14 @@ const mp = {
         .insert({ code, name })
         .select();
       if (!error) {
-        await upsertProfile({ family_code: data[0].code, family_name: name, role: "owner" });
-        await mp.addMember(data[0].code, (await currentNickname()) || "我", "owner");
+        // 昵称一并写进 profile，保证 profiles 与 family_members 两处一致
+        await upsertProfile({
+          nickname,
+          family_code: data[0].code,
+          family_name: name,
+          role: "owner",
+        });
+        await mp.addMember(data[0].code, nickname, "owner");
         return { code: data[0].code, name };
       }
       if (error && error.code === "23505") continue; // 家庭码唯一冲突，换一个重试
@@ -56,7 +59,8 @@ const mp = {
     }
     throw new Error("生成家庭码失败，请重试");
   },
-  async joinFamily(rawCode) {
+  async joinFamily(rawCode, nickname) {
+    checkNickname(nickname); // 加入家庭同样必须设置昵称
     const code = (rawCode || "").toUpperCase();
     const { data, error } = await cloud.database
       .from("families")
@@ -65,8 +69,13 @@ const mp = {
       .maybeSingle();
     if (error) throw fail(error);
     if (!data) throw new Error("家庭码不存在");
-    await upsertProfile({ family_code: data.code, family_name: data.name, role: "member" });
-    await mp.addMember(data.code, (await currentNickname()) || "我", "member");
+    await upsertProfile({
+      nickname,
+      family_code: data.code,
+      family_name: data.name,
+      role: "member",
+    });
+    await mp.addMember(data.code, nickname, "member");
     return { code: data.code, name: data.name };
   },
   async renameFamily(name) {
@@ -87,6 +96,7 @@ const mp = {
     await upsertProfile({ family_code: null, family_name: null, role: null });
   },
   async updateMe(nickname) {
+    checkNickname(nickname); // 昵称不允许改成空或「我」
     await upsertProfile({ nickname });
     // 同步家庭成员列表里的昵称（家庭成员展示的是 family_members 表）
     const p = await cloud.database.from("profiles").select("*").maybeSingle();

@@ -1,5 +1,7 @@
 // 每日计划 · 选择页：管理「我的」孩子用户 + 选/建/复制计划
-// 数据归属：孩子用户只属于当前微信用户（/api/mp/users，与家庭无关）
+// 数据归属：孩子用户 / 计划 / 常用任务在**同家庭内共享**（RLS 策略
+// child_users_family / plans_family / common_tasks_family，见 scripts/mp_rls_family_share.sql），
+// 家庭外的微信账号互相不可见。
 const api = require("../../utils/api");
 const auth = require("../../utils/auth");
 const logic = require("../../utils/dailyPlanLogic");
