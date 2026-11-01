@@ -122,9 +122,9 @@ function drawSheet(ctx, W, H, problems, withAnswer, N, steps) {
   const firstPlus = worstExpr.indexOf(" + ");
   const restExpr = firstPlus >= 0 ? worstExpr.slice(firstPlus + 3) : "";
   const worstAns = `${worstExpr} = ${maxNum}`; // 结果未知（填答案）
-  const worstBlank = `${worstExpr} = ( )`; // 结果未知（空白）
-  // 缺数未知且空白在最左端：( ) + 余下表达式 = 结果（步骤≥2 才可能出现）
-  const worstOperandLeft = firstPlus >= 0 ? `( ) + ${restExpr} = ${maxNum}` : worstAns;
+  const worstBlank = `${worstExpr} = ____`; // 结果未知（空白）
+  // 缺数未知且空白在最左端：____ + 余下表达式 = 结果（步骤≥2 才可能出现）
+  const worstOperandLeft = firstPlus >= 0 ? `____ + ${restExpr} = ${maxNum}` : worstAns;
   const padX = 16;
   const innerW = colW - padX * 2;
   const exprFont = Math.min(

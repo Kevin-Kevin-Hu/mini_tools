@@ -47,37 +47,37 @@ test("结果绝不越界、过程绝不出现负数（大样本压力）", () =>
 test("toExpr / toExprBlanked 渲染格式（填空用圆括号）", () => {
   const p = { nums: [12, 5, 3], ops: ["+", "-"] };
   assert.strictEqual(calc.toExpr(p), "12 + 5 − 3");
-  assert.strictEqual(calc.toExprBlanked(p, 1), "12 + ( ) − 3");
-  assert.strictEqual(calc.toExprBlanked(p, 0), "( ) + 5 − 3");
+  assert.strictEqual(calc.toExprBlanked(p, 1), "12 + ____ − 3");
+  assert.strictEqual(calc.toExprBlanked(p, 0), "____ + 5 − 3");
 });
 
 test("buildProblem 两类结构正确（填空用圆括号）", () => {
   const p = { nums: [12, 5, 3], ops: ["+", "-"], result: 14 };
   const r = calc.buildProblem(p, "result", -1);
-  assert.strictEqual(r.line, "12 + 5 − 3 = ( )");
+  assert.strictEqual(r.line, "12 + 5 − 3 = ____");
   assert.strictEqual(r.lineAns, "12 + 5 − 3 = 14");
 
   const m = calc.buildProblem(p, "operand", 1);
-  assert.strictEqual(m.line, "12 + ( ) − 3 = 14"); // 缺数未知：空白在左、结果写右
+  assert.strictEqual(m.line, "12 + ____ − 3 = 14"); // 缺数未知：空白在左、结果写右
   assert.strictEqual(m.lineAns, "12 + 5 − 3 = 14");
 });
 
-test("genProblems：两类题型都出现，且绝不出现整条翻左的 ( ) = 表达式", () => {
+test("genProblems：两类题型都出现，且绝不出现整条翻左的 ____ = 表达式", () => {
   const probs = calc.genProblems(20, 3, 200);
   let hasResult = false;
   let hasOperand = false;
   for (const it of probs) {
     assert.ok(it.kind === "result" || it.kind === "operand", "kind 合法");
-    // 禁止：以 "( ) = " 开头（整条翻到等号左边的写法）
-    assert.ok(!/^\( \)\s*=/.test(it.line), `不应出现整条翻左：${it.line}`);
+    // 禁止：以 "____ = " 开头（整条翻到等号左边的写法）
+    assert.ok(!/^____\s*=/.test(it.line), `不应出现整条翻左：${it.line}`);
     if (it.kind === "result") {
       hasResult = true;
-      assert.ok(it.line.endsWith("= ( )"), "结果未知：空白应在等号右");
+      assert.ok(it.line.endsWith("= ____"), "结果未知：空白应在等号右");
       assert.strictEqual(it.blankIndex, -1);
     } else {
       hasOperand = true;
-      // 缺数未知：空白在等号左侧（等号前出现 ( )），等号右侧是结果数字
-      assert.ok(/\( \)/.test(it.line.split("=")[0]), "缺数未知：空白应在等号左");
+      // 缺数未知：空白在等号左侧（等号前出现 ____），等号右侧是结果数字
+      assert.ok(/____/.test(it.line.split("=")[0]), "缺数未知：空白应在等号左");
       assert.ok(/= \d+$/.test(it.line), "缺数未知：等号右应为结果数字");
       assert.ok(it.blankIndex >= 0 && it.blankIndex < it.nums.length);
       // 解出的完整算式仍合法（空白填回原数后 validate 通过）

@@ -61,11 +61,11 @@ function toExpr(p) {
   return s;
 }
 
-// 同 toExpr，但把第 j 个运算数（0-based）替换成 ( )，用于「缺数未知」题型的空白展示
+// 同 toExpr，但把第 j 个运算数（0-based）替换成 ____，用于「缺数未知」题型的空白展示
 function toExprBlanked(p, j) {
-  let s = j === 0 ? "( )" : String(p.nums[0]);
+  let s = j === 0 ? "____" : String(p.nums[0]);
   for (let i = 0; i < p.ops.length; i++) {
-    s += (p.ops[i] === "+" ? " + " : " − ") + (i + 1 === j ? "( )" : String(p.nums[i + 1]));
+    s += (p.ops[i] === "+" ? " + " : " − ") + (i + 1 === j ? "____" : String(p.nums[i + 1]));
   }
   return s;
 }
@@ -95,7 +95,7 @@ function buildProblem(p, kind, blankIndex) {
   const expr = toExpr(p);
   let line, lineAns;
   if (kind === "result") {
-    line = `${expr} = ( )`;
+    line = `${expr} = ____`;
     lineAns = `${expr} = ${p.result}`;
   } else {
     line = `${toExprBlanked(p, blankIndex)} = ${p.result}`;
