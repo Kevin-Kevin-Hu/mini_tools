@@ -30,4 +30,7 @@ Page({
   goEqualSub() {
     wx.navigateTo({ url: "/pages/es-home/es-home" });
   },
+  goCalc() {
+    wx.navigateTo({ url: "/pages/calc-practice/calc-practice" });
+  },
 });

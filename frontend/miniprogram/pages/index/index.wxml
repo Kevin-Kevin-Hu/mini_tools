@@ -20,3 +20,12 @@
   </view>
   <view class="tool-arrow">›</view>
 </view>
+
+<view class="tool-card" bind:tap="goCalc">
+  <view class="tool-ico">🧮</view>
+  <view class="tool-main">
+    <view class="tool-name">计算练习题</view>
+    <view class="tool-desc">按难度批量生成加减混合题，A4 一页 100 题，可直接打印</view>
+  </view>
+  <view class="tool-arrow">›</view>
+</view>

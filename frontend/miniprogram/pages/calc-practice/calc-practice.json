@@ -1,0 +1,6 @@
+{
+  "navigationBarTitleText": "计算练习题",
+  "usingComponents": {
+    "stepper": "../../components/stepper/index"
+  }
+}

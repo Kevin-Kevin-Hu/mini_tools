@@ -285,6 +285,58 @@
   background: #fbfcfe;
   width: auto;
 }
+/* 科目标签三选一分段控件 */
+.seg3 {
+  display: inline-flex;
+  border: 1rpx solid #e3e8f0;
+  border-radius: 16rpx;
+  overflow: hidden;
+  background: #f3f6fc;
+}
+.seg3-btn {
+  padding: 12rpx 30rpx;
+  font-size: 26rpx;
+  color: #44506a;
+  border-right: 1rpx solid #e3e8f0;
+}
+.seg3-btn:last-child {
+  border-right: none;
+}
+.seg3-btn.on {
+  background: #2f6fed;
+  color: #fff;
+  font-weight: 700;
+}
+/* 各科时长统计卡片 */
+.stats {
+  margin: 0 24rpx 20rpx;
+}
+.stat-row {
+  display: flex;
+  gap: 16rpx;
+  margin-top: 16rpx;
+  flex-wrap: wrap;
+}
+.stat-item {
+  flex: 1 1 30%;
+  background: #f7f9ff;
+  border: 1rpx solid #e3e8f0;
+  border-radius: 16rpx;
+  padding: 18rpx 24rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 6rpx;
+}
+.stat-k {
+  font-size: 24rpx;
+  color: #7a8499;
+}
+.stat-v {
+  font-size: 34rpx;
+  font-weight: 800;
+  color: #2f6fed;
+  font-variant-numeric: tabular-nums;
+}
 .manage {
   margin-top: 16rpx;
   padding: 20rpx;

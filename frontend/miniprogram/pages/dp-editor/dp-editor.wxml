@@ -109,6 +109,22 @@
           bind:extrabtn="noRest"
         />
       </view>
+      <!-- 科目标签：仅「任务」类目可选；休息/用餐不计入科目 -->
+      <view class="ctl" wx:if="{{item.kind === 'task'}}">
+        <view class="lbl" style="margin-bottom:0">科目</view>
+        <view class="seg3">
+          <view
+            wx:for="{{subjects}}"
+            wx:for-item="s"
+            wx:for-index="si"
+            wx:key="*this"
+            class="seg3-btn {{item.subject === s ? 'on' : ''}}"
+            data-i="{{index}}"
+            data-s="{{s}}"
+            catch:tap="onSubject"
+          >{{s}}</view>
+        </view>
+      </view>
       <view class="row task-acts">
         <view class="act" hover-class="act-hover" data-i="{{index}}" catch:tap="dupTask">复制</view>
         <view class="act danger" hover-class="act-hover" data-i="{{index}}" catch:tap="delTask">删除</view>
@@ -118,6 +134,16 @@
   </view>
 
   <view wx:if="{{endText}}" class="end">当日结束：{{endText}}</view>
+
+  <!-- 统计：各科目累计时长（仅「任务」计入，休息/用餐不计入） -->
+  <view class="card stats" wx:if="{{subjectStatsList.length > 0}}">
+    <view class="lbl">各科时长（仅统计「任务」，休息/用餐不计入）</view>
+    <view class="stat-row">
+      <view class="stat-item" wx:for="{{subjectStatsList}}" wx:key="key">
+        <text class="stat-k">{{item.label}}</text><text class="stat-v">{{item.minutes}} 分钟</text>
+      </view>
+    </view>
+  </view>
 
   <!-- 快速插入：编辑态显示；空列表时始终显示 -->
   <view wx:if="{{viewMode === 'edit' || view.length === 0}}" class="card">

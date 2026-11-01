@@ -1,0 +1,78 @@
+<view class="card">
+  <view class="h2">计算练习题 · 设置</view>
+
+  <view class="field">
+    <stepper label="N 以内（数字上限）" value="{{N}}" min="{{1}}" max="{{9999}}" step="{{1}}" quick="{{[10,20,50,100]}}" bind:change="onNChange" />
+  </view>
+
+  <view class="field">
+    <view class="lbl">步骤（算式里的数字个数）</view>
+    <view class="seg">
+      <view wx:for="{{stepOptions}}" wx:key="*this"
+            class="seg-btn {{stepIndex === index ? 'on' : ''}}"
+            hover-class="seg-btn-hover"
+            data-index="{{index}}" bind:tap="onStepTap">{{item}}</view>
+    </view>
+    <view class="hint">示例：{{example}}</view>
+  </view>
+
+  <view class="field">
+    <view class="lbl">题型结构</view>
+    <view class="seg">
+      <view wx:for="{{kindOptions}}" wx:key="*this"
+            class="seg-btn {{kindIndex === index ? 'on' : ''}}"
+            hover-class="seg-btn-hover"
+            data-index="{{index}}" bind:tap="onKindTap">{{item}}</view>
+    </view>
+    <view class="hint">结果未知（如 12 + 5 − 3 = ?）或 缺数未知（如 12 + ? − 3 = 14，空白是其中一个数字、结果写右边）；加减混合，绝不把整条算式翻到等号左边</view>
+  </view>
+
+  <view class="field">
+    <stepper label="数量（默认 100）" value="{{count}}" min="{{10}}" max="{{200}}" step="{{10}}" quick="{{[50,100,150]}}" bind:change="onCountChange" />
+  </view>
+
+  <view class="field">
+    <stepper label="份数（一次导出几张纸）" value="{{copies}}" min="{{1}}" max="{{20}}" step="{{1}}" quick="{{[1,3,5]}}" bind:change="onCopiesChange" />
+  </view>
+
+  <view class="field row">
+    <view class="lbl">附带答案（家长核对用）</view>
+    <view class="grow"></view>
+    <switch checked="{{withAnswer}}" bindchange="onAnswerToggle" color="#2f6fed" />
+  </view>
+
+  <view class="acts">
+    <button class="btn" bind:tap="generate">生成题目</button>
+  </view>
+</view>
+
+<view class="card" wx:if="{{problems.length}}">
+  <view class="h2">预览 · 第 1 份（{{problems.length}} 题，共 {{copies}} 份）</view>
+
+  <!-- 与打印抬头一致：姓名 / 日期 / 时间(分秒) / 错误数 -->
+  <view class="pv-hdr">
+    <view class="pv-hdr-item"><text>姓名：</text><view class="blank lg"></view></view>
+    <view class="pv-hdr-item"><text>日期：</text><view class="blank sm"></view></view>
+    <view class="pv-hdr-item">
+      <text>时间：</text><view class="blank xs"></view><text>分</text><view class="blank xs"></view><text>秒</text>
+    </view>
+    <view class="pv-hdr-item"><text>错误数：</text><view class="blank sm"></view></view>
+  </view>
+
+  <scroll-view scroll-y class="pv-list">
+    <view class="pv-row" wx:for="{{problems}}" wx:key="index">
+      <text class="pv-line">{{withAnswer ? item.lineAns : item.line}}</text>
+    </view>
+  </scroll-view>
+</view>
+
+<view class="card" wx:if="{{problems.length}}">
+  <view class="acts">
+    <view class="act" hover-class="act-hover" bind:tap="saveImage">保存图片</view>
+    <view class="act primary" hover-class="act-hover" bind:tap="exportPdf">生成 PDF 并打印</view>
+  </view>
+  <view class="hint">导出 PDF 后可在系统查看器里直接打印或转发；A4 纵向，5 列 × 20 行排版，顶部含姓名 / 日期 / 时间 / 错误数栏。设置「份数」可一次性导出多张纸，合并成一个多页 PDF。</view>
+</view>
+
+<!-- 离屏画布：只用于把工作表画成图片，再嵌进 PDF -->
+<canvas type="2d" id="wsCanvas" class="ws-canvas"></canvas>

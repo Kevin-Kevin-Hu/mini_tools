@@ -5,7 +5,8 @@
     "pages/dp-select/dp-select",
     "pages/dp-editor/dp-editor",
     "pages/es-home/es-home",
-    "pages/es-solve/es-solve"
+    "pages/es-solve/es-solve",
+    "pages/calc-practice/calc-practice"
   ],
   "window": {
     "navigationBarTitleText": "EduPace",

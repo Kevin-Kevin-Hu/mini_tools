@@ -250,8 +250,11 @@ function drawStripCard(ctx, page, x, y, w, h) {
       ctx.fillText("√", tx, cy);
       tx += ctx.measureText("√").width + Math.round(8 * k);
     }
-    // 任务名：预留类型标签宽度，超宽缩字号 + 截断
-    const tagText = t.kindLabel && t.kindLabel !== "任务" ? `［${t.kindLabel}］` : "";
+    // 任务名：预留类型标签宽度，超宽缩字号 + 截断。
+    // 科目标签（语文/数学/英语）与类型标签并列展示，未分类则不显示科目标签。
+    const subjText = t.subject ? `〔${t.subject}〕` : "";
+    const kindText = t.kindLabel && t.kindLabel !== "任务" ? `［${t.kindLabel}］` : "";
+    const tagText = [subjText, kindText].filter(Boolean).join("");
     let titleMaxW = x + w - pad - Math.round(10 * k) - tx;
     if (tagText) {
       ctx.font = `${Math.round(16 * k)}px sans-serif`;

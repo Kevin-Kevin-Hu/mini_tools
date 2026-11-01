@@ -5,6 +5,10 @@
 
 const KIND_LABEL = { task: "任务", break: "休息", meal: "用餐" };
 
+// 科目标签：语文 / 数学 / 英语。仅对 kind=task 的学习任务有意义；
+// 休息/用餐不计入科目统计。取值固定这三个，外加「未分类」兜底。
+const SUBJECTS = ["语文", "数学", "英语"];
+
 const PRESETS = [
   { kind: "break", title: "休息", detail: "", duration_min: 20, rest_after_min: 0, is_preset: 1 },
   { kind: "meal", title: "午餐", detail: "", duration_min: 60, rest_after_min: 0, is_preset: 1 },
@@ -18,6 +22,7 @@ function blankTask() {
     kind: "task",
     title: "",
     detail: "",
+    subject: "语文",
     duration_min: 45,
     rest_after_min: DEFAULT_REST,
     is_preset: 0,
@@ -30,11 +35,25 @@ function fromCommon(c) {
     kind: c.kind || "task",
     title: c.title || "",
     detail: c.detail || "",
+    subject: c.subject || "语文",
     duration_min: c.duration_min || 30,
     rest_after_min: c.kind === "task" ? DEFAULT_REST : 0,
     is_preset: 0,
     done: 0,
   };
+}
+
+// 按科目汇总时长（分钟）。只统计 kind=task 的学习任务；
+// 休息/用餐不计入科目，subject 非法/为空归入「未分类」。
+// 返回固定结构：{ 语文, 数学, 英语, 未分类 }，方便 UI 直接点名取数。
+function subjectMinutes(tasks) {
+  const sums = { 语文: 0, 数学: 0, 英语: 0, 未分类: 0 };
+  (tasks || []).forEach((t) => {
+    if (!t || t.kind !== "task") return;
+    const s = t.subject && SUBJECTS.indexOf(t.subject) >= 0 ? t.subject : "未分类";
+    sums[s] += Math.max(0, Number(t.duration_min) || 0);
+  });
+  return sums;
 }
 
 // 统计已完成任务数（done 为真即算；缺省/脏数据按未完成处理）
@@ -137,10 +156,12 @@ function addDays(dateStr, n) {
 
 module.exports = {
   KIND_LABEL,
+  SUBJECTS,
   PRESETS,
   DEFAULT_REST,
   blankTask,
   fromCommon,
+  subjectMinutes,
   doneCount,
   parseTimeToMin,
   minToTime,

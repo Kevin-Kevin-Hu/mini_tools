@@ -4,7 +4,7 @@ const api = require("../../utils/api");
 const logic = require("../../utils/dailyPlanLogic");
 const { createTaskScroller } = require("../../utils/scrollHelper");
 const printStrip = require("../../utils/printStrip");
-const { KIND_LABEL, PRESETS, blankTask, fromCommon } = logic;
+const { KIND_LABEL, PRESETS, SUBJECTS, blankTask, fromCommon, subjectMinutes } = logic;
 
 function decorate(scheduled) {
   return scheduled.map((t) => ({
@@ -49,6 +49,9 @@ Page({
     // 拖动排序
     dragging: -1,
     focusIndex: -1,
+    // 科目标签：语文/数学/英语（仅对「任务」类目有意义）
+    subjects: SUBJECTS,
+    subjectStatsList: [],
     // 打印设置面板
     showPrint: false,
     printOrient: "landscape",
@@ -95,7 +98,18 @@ Page({
       const mt = logic.minToTime(last.endMin);
       endText = mt.text + (mt.dayOffset ? " (+1天)" : "");
     }
-    this.setData({ view, endText });
+    // 按科目汇总时长（仅「任务」计入），转成数组供底部统计卡片渲染
+    // （WXML 绑定不支持中文属性名路径，故用 item.label / item.minutes 迭代）
+    const subjMap = subjectMinutes(this.data.tasks);
+    const subjectStatsList = [
+      { key: "语文", label: "语文", minutes: subjMap["语文"] || 0 },
+      { key: "数学", label: "数学", minutes: subjMap["数学"] || 0 },
+      { key: "英语", label: "英语", minutes: subjMap["英语"] || 0 },
+    ];
+    if ((subjMap["未分类"] || 0) > 0) {
+      subjectStatsList.push({ key: "未分类", label: "未分类", minutes: subjMap["未分类"] });
+    }
+    this.setData({ view, endText, subjectStatsList });
   },
 
   // ---------- 模式 ----------
@@ -150,6 +164,9 @@ Page({
   },
   patchPlan(patch) {
     this.setData({ plan: Object.assign({}, this.data.plan, patch) });
+    // first_start 是排程锚点：改了开始时间必须重算所有任务时刻（含底部科目统计），
+    // 否则任务时间会停在旧值，表现为「改了开始时间却不自动调整」。
+    this.resched();
     this.scheduleMetaSave();
   },
   scheduleMetaSave() {
@@ -199,6 +216,7 @@ Page({
       kind: t.kind,
       title: t.title || "",
       detail: t.detail || "",
+      subject: t.subject || "",
       duration_min: Number(t.duration_min) || 0,
       rest_after_min: Number(t.rest_after_min) || 0,
       is_preset: t.is_preset || 0,
@@ -244,6 +262,14 @@ Page({
   },
   onRest(e) {
     this.updateTask(Number(e.currentTarget.dataset.i), { rest_after_min: e.detail.value });
+  },
+  // 设置任务的科目标签（语文/数学/英语）；只作用于 kind=task 的任务
+  onSubject(e) {
+    const i = Number(e.currentTarget.dataset.i);
+    const s = e.currentTarget.dataset.s;
+    if (!(i >= 0 && i < this.data.tasks.length)) return;
+    if (SUBJECTS.indexOf(s) < 0) return;
+    this.updateTask(i, { subject: s });
   },
   noRest(e) {
     // 事件由 stepper 组件触发：index 从 e.detail 取（currentTarget 是组件节点，读不到 data-i）
